@@ -1,0 +1,298 @@
+{
+  "entities": {
+    "Spot": {
+      "title": "Spot",
+      "description": "An identified or reported extortion spot in the national registry",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 150,
+          "description": "Name and specific landmark of the spot"
+        },
+        "division": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Administrative division"
+        },
+        "district": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "District name"
+        },
+        "thana": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Police station / Thana name"
+        },
+        "lat": {
+          "type": "number",
+          "description": "Latitude coordinate"
+        },
+        "lng": {
+          "type": "number",
+          "description": "Longitude coordinate"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["RED", "YELLOW", "GREEN"],
+          "description": "Extortion status zone"
+        },
+        "score": {
+          "type": "number",
+          "description": "AI Trust / Severity score 0-100"
+        },
+        "category": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Category: পরিবহন, কাঁচাবাজার, ফুটপাত, নদীঘাট, নির্মাণাধীন, অন্যান্য"
+        },
+        "rate": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Extortion tariff or rate demanded"
+        },
+        "syndicate": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Alleged extortion syndicate or gang"
+        },
+        "collector": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Names of collectors or field operatives"
+        },
+        "reportCount": {
+          "type": "number",
+          "description": "Number of citizen reports"
+        },
+        "upvotes": {
+          "type": "number",
+          "description": "Citizen confirmation count"
+        },
+        "downvotes": {
+          "type": "number",
+          "description": "Citizen dispute count"
+        },
+        "evidenceSummary": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Summary of evidence gathered"
+        },
+        "reportedBy": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "UID of reporter"
+        },
+        "reporterName": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Name or pseudonym of reporter"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        }
+      },
+      "required": ["name", "division", "lat", "lng", "status", "category", "rate", "reportedBy"]
+    },
+    "IncidentReport": {
+      "title": "IncidentReport",
+      "description": "Citizen submitted complaint or incident report",
+      "type": "object",
+      "properties": {
+        "spotName": {
+          "type": "string",
+          "maxLength": 150,
+          "description": "Name of the spot or area"
+        },
+        "division": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Division"
+        },
+        "category": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Extortion category"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Detailed incident description"
+        },
+        "rateDemanded": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Amount demanded"
+        },
+        "suspectNames": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Names or titles of suspects"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "verified", "investigating", "resolved"],
+          "description": "Verification status"
+        },
+        "lat": {
+          "type": "number",
+          "description": "Latitude"
+        },
+        "lng": {
+          "type": "number",
+          "description": "Longitude"
+        },
+        "reportedBy": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "UID of user who filed report"
+        },
+        "reporterName": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Reporter display name"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Report timestamp"
+        }
+      },
+      "required": ["spotName", "division", "category", "description", "reportedBy"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Citizen defense profile and karma",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "User identifier"
+        },
+        "displayName": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Display name"
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 150,
+          "description": "User email address"
+        },
+        "photoURL": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Avatar photo URL"
+        },
+        "civicKarma": {
+          "type": "number",
+          "description": "Civic participation karma points"
+        },
+        "citizenTier": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Citizen defense tier"
+        },
+        "reportsSubmitted": {
+          "type": "number",
+          "description": "Count of reports submitted"
+        },
+        "votesCast": {
+          "type": "number",
+          "description": "Count of jury votes cast"
+        },
+        "zkpVerified": {
+          "type": "boolean",
+          "description": "ZKP anonymous verification status"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Profile creation time"
+        }
+      },
+      "required": ["uid", "displayName"]
+    },
+    "CommunityAlert": {
+      "title": "CommunityAlert",
+      "description": "Flash alert broadcasted to community within range",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 150,
+          "description": "Alert title"
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Alert message"
+        },
+        "lat": {
+          "type": "number",
+          "description": "Origin latitude"
+        },
+        "lng": {
+          "type": "number",
+          "description": "Origin longitude"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["CRITICAL", "WARNING", "INFO"],
+          "description": "Severity level"
+        },
+        "createdBy": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "UID of alert originator"
+        },
+        "creatorName": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Name of originator"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation time"
+        }
+      },
+      "required": ["title", "message", "lat", "lng", "severity", "createdBy"]
+    }
+  },
+  "firestore": {
+    "/spots/{spotId}": {
+      "schema": {
+        "$ref": "#/entities/Spot"
+      },
+      "description": "National registry of verified and active extortion spots"
+    },
+    "/reports/{reportId}": {
+      "schema": {
+        "$ref": "#/entities/IncidentReport"
+      },
+      "description": "Citizen submitted extortion reports and complaints"
+    },
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Citizen profiles, civic karma and defense achievements"
+    },
+    "/alerts/{alertId}": {
+      "schema": {
+        "$ref": "#/entities/CommunityAlert"
+      },
+      "description": "Community flash alerts and real-time broadcasts"
+    }
+  }
+}

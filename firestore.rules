@@ -1,0 +1,196 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Master Catch-All Default-Deny Gate
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Hardened Primitives & Identity Helpers
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Bootstrapped Admin Verification
+    function isAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.email == 'rejwanrejvi6@gmail.com' && request.auth.token.email_verified == true) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // 3. Validation Blueprints (Anti-Update-Gap)
+
+    function isValidSpot(data) {
+      return data.keys().hasAll(['name', 'division', 'lat', 'lng', 'status', 'category', 'rate', 'reportedBy'])
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 150
+        && data.division is string && data.division.size() <= 50
+        && data.category is string && data.category.size() <= 50
+        && data.rate is string && data.rate.size() <= 100
+        && data.status in ['RED', 'YELLOW', 'GREEN']
+        && data.lat is number && data.lat >= 20.0 && data.lat <= 27.0
+        && data.lng is number && data.lng >= 88.0 && data.lng <= 93.0
+        && data.reportedBy is string && data.reportedBy.size() <= 128
+        && (!('score' in data) || (data.score is number && data.score >= 0 && data.score <= 100))
+        && (!('upvotes' in data) || (data.upvotes is number && data.upvotes >= 0))
+        && (!('downvotes' in data) || (data.downvotes is number && data.downvotes >= 0))
+        && (!('evidenceSummary' in data) || (data.evidenceSummary is string && data.evidenceSummary.size() <= 500));
+    }
+
+    function isValidReport(data) {
+      return data.keys().hasAll(['spotName', 'division', 'category', 'description', 'reportedBy'])
+        && data.spotName is string && data.spotName.size() > 0 && data.spotName.size() <= 150
+        && data.division is string && data.division.size() <= 50
+        && data.category is string && data.category.size() <= 50
+        && data.description is string && data.description.size() > 0 && data.description.size() <= 1000
+        && data.reportedBy is string && data.reportedBy.size() <= 128
+        && (!('rateDemanded' in data) || (data.rateDemanded is string && data.rateDemanded.size() <= 100))
+        && (!('suspectNames' in data) || (data.suspectNames is string && data.suspectNames.size() <= 200))
+        && (!('status' in data) || data.status in ['pending', 'verified', 'investigating', 'resolved']);
+    }
+
+    function isValidUser(data, userId) {
+      return data.uid == userId
+        && data.displayName is string && data.displayName.size() > 0 && data.displayName.size() <= 100
+        && (!('email' in data) || (data.email is string && data.email.size() <= 150))
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500))
+        && (!('civicKarma' in data) || (data.civicKarma is number && data.civicKarma >= 0))
+        && (!('citizenTier' in data) || (data.citizenTier is string && data.citizenTier.size() <= 50));
+    }
+
+    function isValidAlert(data) {
+      return data.keys().hasAll(['title', 'message', 'lat', 'lng', 'severity', 'createdBy'])
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 150
+        && data.message is string && data.message.size() > 0 && data.message.size() <= 500
+        && data.severity in ['CRITICAL', 'WARNING', 'INFO']
+        && data.lat is number && data.lat >= 20.0 && data.lat <= 27.0
+        && data.lng is number && data.lng >= 88.0 && data.lng <= 93.0
+        && data.createdBy is string && data.createdBy.size() <= 128;
+    }
+
+    // ==========================================
+    // 4. Collection Security Gates
+    // ==========================================
+
+    // Spots Collection - Public Civic Intelligence
+    match /spots/{spotId} {
+      allow read: if true;
+
+      allow create: if isSignedIn()
+        && isValidId(spotId)
+        && isValidSpot(incoming())
+        && incoming().reportedBy == request.auth.uid;
+
+      allow update: if isSignedIn()
+        && isValidId(spotId)
+        && (
+          // Admin bypass
+          isAdmin() ||
+          // Citizen Consensus Vote Action
+          (
+            incoming().diff(existing()).affectedKeys().hasOnly(['upvotes', 'downvotes', 'score', 'status', 'reportCount', 'updatedAt'])
+            && incoming().status in ['RED', 'YELLOW', 'GREEN']
+            && incoming().score is number && incoming().score >= 0 && incoming().score <= 100
+            && incoming().reportedBy == existing().reportedBy
+          ) ||
+          // Original Creator Edit Action
+          (
+            existing().reportedBy == request.auth.uid
+            && incoming().reportedBy == existing().reportedBy
+            && isValidSpot(incoming())
+          )
+        );
+
+      allow delete: if isAdmin() || (isSignedIn() && existing().reportedBy == request.auth.uid);
+    }
+
+    // Reports Collection - Incident Complaints
+    match /reports/{reportId} {
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+        && isValidId(reportId)
+        && isValidReport(incoming())
+        && incoming().reportedBy == request.auth.uid;
+
+      allow update: if isSignedIn()
+        && isValidId(reportId)
+        && (
+          isAdmin() ||
+          (
+            existing().reportedBy == request.auth.uid
+            && incoming().reportedBy == existing().reportedBy
+            && isValidReport(incoming())
+          ) ||
+          (
+            // Status transition by verifier/admin
+            incoming().diff(existing()).affectedKeys().hasOnly(['status'])
+            && incoming().status in ['pending', 'verified', 'investigating', 'resolved']
+          )
+        );
+
+      allow delete: if isAdmin() || (isSignedIn() && existing().reportedBy == request.auth.uid);
+    }
+
+    // Users Collection - Citizen Defense Profiles
+    match /users/{userId} {
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+        && isValidId(userId)
+        && isOwner(userId)
+        && isValidUser(incoming(), userId);
+
+      allow update: if isSignedIn()
+        && isValidId(userId)
+        && (
+          isAdmin() ||
+          (
+            isOwner(userId)
+            && incoming().uid == existing().uid
+            && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'civicKarma', 'citizenTier', 'reportsSubmitted', 'votesCast', 'zkpVerified', 'updatedAt'])
+            && isValidUser(incoming(), userId)
+          )
+        );
+
+      allow delete: if isAdmin() || (isSignedIn() && isOwner(userId));
+    }
+
+    // Community Alerts - Emergency Broadcasts
+    match /alerts/{alertId} {
+      allow read: if true;
+
+      allow create: if isSignedIn()
+        && isValidId(alertId)
+        && isValidAlert(incoming())
+        && incoming().createdBy == request.auth.uid;
+
+      allow update: if isAdmin();
+
+      allow delete: if isAdmin() || (isSignedIn() && existing().createdBy == request.auth.uid);
+    }
+
+    // Admins registry (Read-only except by admin)
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}

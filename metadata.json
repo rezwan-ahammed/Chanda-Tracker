@@ -1,0 +1,6 @@
+{
+  "name": "National Extortion Registry & Civic Defense Hub",
+  "description": "প্রিমিয়াম ফ্রস্টেড গ্লাস-মরফিজম ইন্টারফেসে জাতীয় চাঁদাবাজি রেজিস্ট্রি, লাইভ ভেক্টর ম্যাপ, প্রক্সিমিটি রাডার, ক্রাইম অ্যানালিটিক্স ও জিরো-নলেজ নাগরিক প্রতিরক্ষা প্ল্যাটফর্ম।",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
