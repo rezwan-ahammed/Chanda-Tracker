@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Database, Search, ChevronUp, ChevronDown, ShieldAlert, Users, Layers, ExternalLink } from 'lucide-react';
 import { Syndicate } from '../types';
+import { safeFetchJson } from '../utils/safeApi';
 
 interface DatabaseViewProps {
   onNavigateToMapWithSpot?: (spotName: string) => void;
@@ -12,13 +13,12 @@ export const DatabaseView: React.FC<DatabaseViewProps> = () => {
   const [expandedSyndicate, setExpandedSyndicate] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/syndicates')
-      .then(r => r.json())
-      .then(data => {
-        if (data.syndicates && Array.isArray(data.syndicates)) {
-          setSyndicates(data.syndicates);
-          if (data.syndicates.length > 0) {
-            setExpandedSyndicate(data.syndicates[0].id);
+    safeFetchJson<{ syndicates: Syndicate[] }>('/api/syndicates')
+      .then(res => {
+        if (res.ok && res.data?.syndicates && Array.isArray(res.data.syndicates)) {
+          setSyndicates(res.data.syndicates);
+          if (res.data.syndicates.length > 0) {
+            setExpandedSyndicate(res.data.syndicates[0].id);
           }
         }
       })

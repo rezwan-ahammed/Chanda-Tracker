@@ -27,7 +27,14 @@ import {
   subscribeToFirestoreSpots,
   triggerDistrictPushAlert,
   subscribeToFirestoreAlerts,
+  voteSpotInFirestore,
+  auth,
 } from './firebase';
+import {
+  safeFetchJson,
+  clientGetUserByToken,
+  clientAuthenticate,
+} from './utils/safeApi';
 import {
   ZkpNidModal,
   ProfileModal,
@@ -93,34 +100,47 @@ export default function App() {
   useEffect(() => {
     const token = localStorage.getItem('civic_auth_token');
     if (token) {
-      fetch('/api/auth/me', {
+      const localUser = clientGetUserByToken(token);
+      if (localUser) {
+        setCurrentUser(localUser);
+        setCivicKarma(localUser.karma);
+        if (localUser.zkpHash) setUserNidHashed(localUser.zkpHash);
+        if (localUser.division) setSelectedDistrict(localUser.division);
+      }
+      safeFetchJson<{ user: User }>('/api/auth/me', {
         headers: { Authorization: `Bearer ${token}` },
       })
-        .then(r => r.json())
-        .then(d => {
-          if (d.user) {
-            setCurrentUser(d.user);
-            setCivicKarma(d.user.karma);
-            if (d.user.zkpHash) setUserNidHashed(d.user.zkpHash);
-            if (d.user.division) setSelectedDistrict(d.user.division);
+        .then(res => {
+          if (res.ok && res.data?.user) {
+            setCurrentUser(res.data.user);
+            setCivicKarma(res.data.user.karma);
+            if (res.data.user.zkpHash) setUserNidHashed(res.data.user.zkpHash);
+            if (res.data.user.division) setSelectedDistrict(res.data.user.division);
           }
         })
         .catch(() => {});
     } else {
-      // Auto-connect as verified citizen
-      fetch('/api/auth/login', {
+      // Auto-connect as verified citizen (supports offline and Vercel static environments)
+      const defaultAuth = clientAuthenticate('01711000001', 'password123');
+      if (defaultAuth) {
+        localStorage.setItem('civic_auth_token', defaultAuth.token);
+        setCurrentUser(defaultAuth.user);
+        setCivicKarma(defaultAuth.user.karma);
+        if (defaultAuth.user.zkpHash) setUserNidHashed(defaultAuth.user.zkpHash);
+        if (defaultAuth.user.division) setSelectedDistrict(defaultAuth.user.division);
+      }
+      safeFetchJson<{ user: User; token: string }>('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneOrEmail: '01711000001', password: 'password123' }),
       })
-        .then(r => r.json())
-        .then(d => {
-          if (d.user && d.token) {
-            localStorage.setItem('civic_auth_token', d.token);
-            setCurrentUser(d.user);
-            setCivicKarma(d.user.karma);
-            if (d.user.zkpHash) setUserNidHashed(d.user.zkpHash);
-            if (d.user.division) setSelectedDistrict(d.user.division);
+        .then(res => {
+          if (res.ok && res.data?.user && res.data?.token) {
+            localStorage.setItem('civic_auth_token', res.data.token);
+            setCurrentUser(res.data.user);
+            setCivicKarma(res.data.user.karma);
+            if (res.data.user.zkpHash) setUserNidHashed(res.data.user.zkpHash);
+            if (res.data.user.division) setSelectedDistrict(res.data.user.division);
           }
         })
         .catch(() => {});
@@ -193,12 +213,12 @@ export default function App() {
       },
       (err) => {
         console.warn('Firestore subscription fallback to server API:', err);
-        fetch('/api/spots')
-          .then(r => r.json())
-          .then(data => {
-            const list = Array.isArray(data.spots) ? data.spots : [];
-            setSpots(list);
-            setSelectedSpot(list[0] || null);
+        safeFetchJson<{ spots: ExtortionSpot[] }>('/api/spots')
+          .then(res => {
+            if (res.ok && res.data?.spots && Array.isArray(res.data.spots)) {
+              setSpots(res.data.spots);
+              setSelectedSpot(res.data.spots[0] || null);
+            }
           })
           .catch(() => {});
       }
@@ -260,7 +280,7 @@ export default function App() {
   // Handle Voting
   const handleVote = (spotId: number, isUp: boolean) => {
     const token = localStorage.getItem('civic_auth_token');
-    fetch(`/api/spots/${spotId}/vote`, {
+    safeFetchJson<{ spot: ExtortionSpot }>(`/api/spots/${spotId}/vote`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -268,16 +288,18 @@ export default function App() {
       },
       body: JSON.stringify({ isUp }),
     })
-      .then(r => r.json())
-      .then(d => {
-        if (d.spot) {
-          setSpots(prev => prev.map(s => s.id === spotId ? d.spot : s));
+      .then(res => {
+        if (res.ok && res.data?.spot) {
+          setSpots(prev => prev.map(s => s.id === spotId ? res.data!.spot : s));
           if (selectedSpot && selectedSpot.id === spotId) {
-            setSelectedSpot(d.spot);
+            setSelectedSpot(res.data.spot);
           }
         }
       })
       .catch(e => console.warn('Vote server sync error:', e));
+
+    // Also sync directly with Firestore
+    voteSpotInFirestore(spotId, isUp).catch(() => {});
 
     setSpots(prevSpots =>
       prevSpots.map(s => {
@@ -345,7 +367,7 @@ export default function App() {
       upvotes: newSpot.upvotes,
       downvotes: newSpot.downvotes,
       evidenceSummary: newSpot.evidenceTitle,
-      reportedBy: currentUser?.id || 'anon_citizen',
+      reportedBy: auth.currentUser?.uid || currentUser?.id || 'anon_citizen',
       reporterName: currentUser?.name || 'নাগরিক',
     }).catch(e => console.warn('Firestore spot sync fallback:', e));
 
@@ -503,7 +525,7 @@ export default function App() {
               onVote={(spotId, isUp) => {
                 handleVote(spotId, isUp);
                 const token = localStorage.getItem('civic_auth_token');
-                fetch(`/api/spots/${spotId}/jury`, {
+                safeFetchJson<{ spot: ExtortionSpot }>(`/api/spots/${spotId}/jury`, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -511,10 +533,9 @@ export default function App() {
                   },
                   body: JSON.stringify({ isTrue: isUp }),
                 })
-                  .then(r => r.json())
-                  .then(d => {
-                    if (d.spot) {
-                      setSpots(prev => prev.map(s => s.id === spotId ? d.spot : s));
+                  .then(res => {
+                    if (res.ok && res.data?.spot) {
+                      setSpots(prev => prev.map(s => s.id === spotId ? res.data!.spot : s));
                     }
                   })
                   .catch(() => {});

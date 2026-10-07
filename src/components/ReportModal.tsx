@@ -4,6 +4,7 @@ import { DivisionName, SpotCategory, ExtortionSpot } from '../types';
 import { RealAudioRecorder } from './RealAudioRecorder';
 import { ImageSanitizer } from './ImageSanitizer';
 import { generateZkpNidHash } from '../utils/crypto';
+import { safeFetchJson } from '../utils/safeApi';
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -91,7 +92,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
     try {
       // Real backend API call with authenticated citizen credentials
       const token = localStorage.getItem('civic_auth_token');
-      const res = await fetch('/api/spots', {
+      const res = await safeFetchJson<{ spot: ExtortionSpot }>('/api/spots', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -100,16 +101,15 @@ export const ReportModal: React.FC<ReportModalProps> = ({
         body: JSON.stringify(newSpotData),
       });
 
-      if (res.ok) {
-        const json = await res.json();
+      if (res.ok && res.data?.spot) {
         setSubmissionStep(4);
         setTimeout(() => {
-          onSubmitSpot(json.spot);
+          onSubmitSpot(res.data!.spot);
           setIsSubmitting(false);
           onClose();
         }, 800);
       } else {
-        throw new Error('Server submission error');
+        throw new Error(res.error || 'Server submission error');
       }
     } catch (err) {
       console.warn('Backend offline, saving locally:', err);

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { ExtortionSpot, Syndicate } from '../types';
 import { computeThreatAnalysis, ThreatAnalysisReport, EscalationForecast } from '../utils/threatEngine';
+import { safeFetchJson } from '../utils/safeApi';
 
 interface ThreatAnalysisViewProps {
   spots: ExtortionSpot[];
@@ -43,11 +44,10 @@ export const ThreatAnalysisView: React.FC<ThreatAnalysisViewProps> = ({
   const [customAiSummary, setCustomAiSummary] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/syndicates')
-      .then(r => r.json())
-      .then(d => {
-        if (d.syndicates && Array.isArray(d.syndicates)) {
-          setSyndicates(d.syndicates);
+    safeFetchJson<{ syndicates: Syndicate[] }>('/api/syndicates')
+      .then(res => {
+        if (res.ok && res.data?.syndicates && Array.isArray(res.data.syndicates)) {
+          setSyndicates(res.data.syndicates);
         }
       })
       .catch(() => {});
@@ -71,7 +71,7 @@ export const ThreatAnalysisView: React.FC<ThreatAnalysisViewProps> = ({
   const handleRunNeuralAnalysis = async () => {
     setIsAiLoading(true);
     try {
-      const res = await fetch('/api/ai-threat-analysis', {
+      const res = await safeFetchJson<{ source: string; data?: any }>('/api/ai-threat-analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -81,12 +81,11 @@ export const ThreatAnalysisView: React.FC<ThreatAnalysisViewProps> = ({
         }),
       });
 
-      if (res.ok) {
-        const json = await res.json();
-        if (json.source === 'GEMINI_AI_NEURAL' && json.data) {
+      if (res.ok && res.data) {
+        if (res.data.source === 'GEMINI_AI_NEURAL' && res.data.data) {
           setAiReportSource('GEMINI_NEURAL');
-          if (json.data.executiveSummary) {
-            setCustomAiSummary(json.data.executiveSummary);
+          if (res.data.data.executiveSummary) {
+            setCustomAiSummary(res.data.data.executiveSummary);
           }
         } else {
           setAiReportSource('LOCAL_HEURISTIC');

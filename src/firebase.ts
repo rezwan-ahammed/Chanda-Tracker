@@ -155,8 +155,18 @@ export async function signInWithGoogle() {
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(auth, provider);
     return result.user;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Google Sign In Error:', error);
+    const domain = typeof window !== 'undefined' ? window.location.hostname : 'unknown-domain';
+    if (error?.code === 'auth/unauthorized-domain' || error?.message?.includes('unauthorized-domain')) {
+      const customErr: any = new Error(
+        `Firebase Authentication: এই ডোমেইনটি (${domain}) Firebase Console-এ অনুমোদিত নয় (auth/unauthorized-domain)।`
+      );
+      customErr.code = 'auth/unauthorized-domain';
+      customErr.domain = domain;
+      customErr.originalError = error;
+      throw customErr;
+    }
     throw error;
   }
 }

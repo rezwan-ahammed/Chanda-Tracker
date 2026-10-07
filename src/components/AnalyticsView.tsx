@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { TrendingUp, AlertTriangle, ShieldCheck, Wallet, DollarSign, BarChart2, Filter } from 'lucide-react';
 import { ExtortionSpot, DivisionName, SpotStatus, ShadowWallet } from '../types';
 import { MONTHLY_TRENDS } from '../data/mockData';
+import { safeFetchJson } from '../utils/safeApi';
 
 interface AnalyticsViewProps {
   spots: ExtortionSpot[];
@@ -23,11 +24,10 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ spots, onNavigateT
 
   // Fetch live shadow wallets from API
   useEffect(() => {
-    fetch('/api/wallets')
-      .then(r => r.json())
-      .then(d => {
-        if (d.wallets && Array.isArray(d.wallets)) {
-          setWallets(d.wallets);
+    safeFetchJson<{ wallets: ShadowWallet[] }>('/api/wallets')
+      .then(res => {
+        if (res.ok && res.data?.wallets && Array.isArray(res.data.wallets)) {
+          setWallets(res.data.wallets);
         }
       })
       .catch(() => {});
