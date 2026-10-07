@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   MapPin,
   TrendingUp,
@@ -8,9 +8,9 @@ import {
   Plus,
   ShieldAlert,
   Brain,
+  BellRing,
 } from 'lucide-react';
 import { ExtortionSpot, DivisionName, SpotStatus, User } from './types';
-import { OFFICIAL_VERIFIED_SPOTS } from './data/verifiedRegistry';
 import { Header } from './components/Header';
 import { MapView } from './components/MapView';
 import { AnalyticsView } from './components/AnalyticsView';
@@ -21,7 +21,13 @@ import { JuryView } from './components/JuryView';
 import { ReportModal } from './components/ReportModal';
 import { StealthCalculator } from './components/StealthCalculator';
 import { AuthModal } from './components/AuthModal';
-import { saveSpotToFirestore, subscribeToFirestoreSpots } from './firebase';
+import { DistrictAlertModal } from './components/DistrictAlertModal';
+import {
+  saveSpotToFirestore,
+  subscribeToFirestoreSpots,
+  triggerDistrictPushAlert,
+  subscribeToFirestoreAlerts,
+} from './firebase';
 import {
   ZkpNidModal,
   ProfileModal,
@@ -35,19 +41,20 @@ type ActiveTab = 'explore' | 'analytics' | 'threat' | 'radar' | 'database' | 'ju
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('explore');
-  const [spots, setSpots] = useState<ExtortionSpot[]>(() => {
-    const saved = localStorage.getItem('civic_defense_spots');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return OFFICIAL_VERIFIED_SPOTS;
-      }
-    }
-    return OFFICIAL_VERIFIED_SPOTS;
-  });
+  // Pure live Firestore database state — starts empty, no fake mock data
+  const [spots, setSpots] = useState<ExtortionSpot[]>([]);
+  const [selectedSpot, setSelectedSpot] = useState<ExtortionSpot | null>(null);
 
-  const [selectedSpot, setSelectedSpot] = useState<ExtortionSpot | null>(spots[0] || null);
+  // Selected district for FCM real-time push alerts
+  const [selectedDistrict, setSelectedDistrict] = useState<DivisionName>(() => {
+    return (localStorage.getItem('user_alert_district') as DivisionName) || 'ঢাকা';
+  });
+  const [showDistrictAlertModal, setShowDistrictAlertModal] = useState<boolean>(false);
+  const [activeDistrictAlert, setActiveDistrictAlert] = useState<{
+    title: string;
+    message: string;
+    spot?: ExtortionSpot;
+  } | null>(null);
 
   // User & Authentication state
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -60,6 +67,14 @@ export default function App() {
     return saved ? parseInt(saved, 10) : 185;
   });
   const [userLocation, setUserLocation] = useState<[number, number]>([23.7516, 90.3944]);
+
+  const knownSpotIdsRef = useRef<Set<number | string>>(new Set());
+  const initialLoadDoneRef = useRef<boolean>(false);
+
+  // Clean any old mock spots from previous sessions to ensure pure Firestore data
+  useEffect(() => {
+    localStorage.removeItem('civic_defense_spots');
+  }, []);
 
   // Track live GPS on startup
   useEffect(() => {
@@ -87,6 +102,7 @@ export default function App() {
             setCurrentUser(d.user);
             setCivicKarma(d.user.karma);
             if (d.user.zkpHash) setUserNidHashed(d.user.zkpHash);
+            if (d.user.division) setSelectedDistrict(d.user.division);
           }
         })
         .catch(() => {});
@@ -104,34 +120,120 @@ export default function App() {
             setCurrentUser(d.user);
             setCivicKarma(d.user.karma);
             if (d.user.zkpHash) setUserNidHashed(d.user.zkpHash);
+            if (d.user.division) setSelectedDistrict(d.user.division);
           }
         })
         .catch(() => {});
     }
   }, []);
 
-  // Fetch real spots and poll for live database updates
+  // 100% Authoritative Firestore Database Real-time Subscription
   useEffect(() => {
-    const fetchLiveSpots = () => {
-      fetch('/api/spots')
-        .then(r => r.json())
-        .then(data => {
-          if (data.spots && Array.isArray(data.spots) && data.spots.length > 0) {
-            setSpots(data.spots);
-            setSelectedSpot(prev => {
-              if (!prev) return data.spots[0];
-              const match = data.spots.find((s: ExtortionSpot) => s.id === prev.id);
-              return match || data.spots[0];
-            });
-          }
-        })
-        .catch(e => console.warn('Spot fetch error:', e));
-    };
+    const unsub = subscribeToFirestoreSpots(
+      (firestoreDocs) => {
+        const formatted: ExtortionSpot[] = firestoreDocs.map((doc: any) => ({
+          id: typeof doc.id === 'number' ? doc.id : (parseInt(doc.id, 10) || Number(String(doc.id).replace(/\D/g, '')) || Date.now()),
+          name: doc.name || 'অজ্ঞাত স্পট',
+          division: (doc.division as DivisionName) || 'ঢাকা',
+          area: doc.area || doc.thana || `${doc.division || 'ঢাকা'} সংশ্লিষ্ট এলাকা`,
+          policeStation: doc.policeStation || doc.thana || `${doc.division || 'ঢাকা'} থানা`,
+          rate: String(doc.rate || '০'),
+          unit: doc.unit || 'দৈনিক',
+          category: doc.category || 'অন্যান্য',
+          status: (doc.status as SpotStatus) || 'YELLOW',
+          score: typeof doc.score === 'number' ? doc.score : 60,
+          upvotes: typeof doc.upvotes === 'number' ? doc.upvotes : 0,
+          downvotes: typeof doc.downvotes === 'number' ? doc.downvotes : 0,
+          syndicateId: doc.syndicateId || 'syn_unverified',
+          syndicateName: doc.syndicate || doc.syndicateName || 'শনাক্তকরণাধীন চক্র',
+          distance: doc.distance || '৩৫০ মিটার',
+          coords: Array.isArray(doc.coords) && doc.coords.length === 2
+            ? doc.coords
+            : [typeof doc.lat === 'number' ? doc.lat : 23.75, typeof doc.lng === 'number' ? doc.lng : 90.39],
+          evidenceType: doc.evidenceType || 'AUDIO',
+          evidenceTitle: doc.evidenceTitle || doc.evidenceSummary || 'নাগরিক ডিজিটাল সাক্ষ্য ও অডিট',
+          evidenceMeta: doc.evidenceMeta || 'ভেরিফাইড নাগরিক অভিযোগ',
+          ipfsCid: doc.ipfsCid || 'bafybeicivicrecord',
+          reportedByHash: doc.reportedByHash || 'sha256_anon',
+          estimatedDailyCollection: doc.estimatedDailyCollection || 'তদন্তাধীন',
+          updates: doc.updates || ['ফায়ারবেস ক্লাউড ডাটাবেস থেকে সরাসরি সিঙ্ককৃত'],
+          reportedAt: doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('bn-BD') : 'লাইভ ডাটাবেস',
+        }));
 
-    fetchLiveSpots();
-    const interval = setInterval(fetchLiveSpots, 6000);
-    return () => clearInterval(interval);
-  }, []);
+        // FCM District Real-time Detection
+        if (initialLoadDoneRef.current) {
+          formatted.forEach(spot => {
+            if (!knownSpotIdsRef.current.has(spot.id)) {
+              knownSpotIdsRef.current.add(spot.id);
+              // If new spot is reported in the user's selected district and is high-threat
+              if (
+                spot.division === selectedDistrict &&
+                (spot.status === 'RED' || spot.score >= 70 || parseInt(spot.rate, 10) >= 100)
+              ) {
+                triggerDistrictPushAlert(spot);
+                setActiveDistrictAlert({
+                  title: `🚨 [${spot.division} জেলা] নতুন রেড জোন চাঁদাবাজি সতর্কতা!`,
+                  message: `${spot.name} (${spot.area}) স্পটে ৳ ${spot.rate} হারে চাঁদা দাবির তীব্র অভিযোগ রেকর্ড হয়েছে।`,
+                  spot,
+                });
+              }
+            }
+          });
+        } else {
+          formatted.forEach(spot => knownSpotIdsRef.current.add(spot.id));
+          initialLoadDoneRef.current = true;
+        }
+
+        setSpots(formatted);
+        setSelectedSpot(prev => {
+          if (!prev) return formatted[0] || null;
+          const found = formatted.find(s => s.id === prev.id);
+          return found || formatted[0] || null;
+        });
+      },
+      (err) => {
+        console.warn('Firestore subscription fallback to server API:', err);
+        fetch('/api/spots')
+          .then(r => r.json())
+          .then(data => {
+            const list = Array.isArray(data.spots) ? data.spots : [];
+            setSpots(list);
+            setSelectedSpot(list[0] || null);
+          })
+          .catch(() => {});
+      }
+    );
+
+    return () => {
+      if (unsub) unsub();
+    };
+  }, [selectedDistrict]);
+
+  // Real-time Firestore alerts subscriber
+  useEffect(() => {
+    const unsub = subscribeToFirestoreAlerts((alerts) => {
+      if (!alerts || alerts.length === 0) return;
+      const latest = alerts[0];
+      if (
+        latest &&
+        latest.severity === 'CRITICAL' &&
+        (latest.district === selectedDistrict || !latest.district)
+      ) {
+        // Show emergency district banner if not shown already
+        setActiveDistrictAlert(prev => {
+          if (prev && prev.title === latest.title) return prev;
+          return {
+            title: latest.title,
+            message: latest.message,
+          };
+        });
+      }
+    });
+
+    return () => {
+      if (unsub) unsub();
+    };
+  }, [selectedDistrict]);
 
   // Stealth Panic Mode
   const [isPanicMode, setIsPanicMode] = useState<boolean>(false);
@@ -146,11 +248,6 @@ export default function App() {
   const [gdSpot, setGdSpot] = useState<ExtortionSpot | null>(null);
   const [showSosModal, setShowSosModal] = useState<boolean>(false);
   const [showFlashModal, setShowFlashModal] = useState<boolean>(false);
-
-  // Persist spots & karma
-  useEffect(() => {
-    localStorage.setItem('civic_defense_spots', JSON.stringify(spots));
-  }, [spots]);
 
   useEffect(() => {
     localStorage.setItem('civic_karma', civicKarma.toString());
@@ -252,6 +349,11 @@ export default function App() {
       reporterName: currentUser?.name || 'নাগরিক',
     }).catch(e => console.warn('Firestore spot sync fallback:', e));
 
+    // Trigger FCM real-time push alert if high-threat / Red Zone
+    if (newSpot.status === 'RED' || newSpot.score >= 70 || parseInt(newSpot.rate, 10) >= 100) {
+      triggerDistrictPushAlert(newSpot);
+    }
+
     setActiveTab('explore');
   };
 
@@ -295,6 +397,7 @@ export default function App() {
         <Header
           onOpenProfile={() => setShowProfileModal(true)}
           onOpenFlashAlert={() => setShowFlashModal(true)}
+          onOpenDistrictAlert={() => setShowDistrictAlertModal(true)}
           onOpenSos={() => setShowSosModal(true)}
           onTogglePanicMode={() => setIsPanicMode(true)}
           onOpenNid={() => setShowZkpModal(true)}
@@ -302,7 +405,43 @@ export default function App() {
           currentUser={currentUser}
           userNidHashed={userNidHashed}
           civicKarma={currentUser ? currentUser.karma : civicKarma}
+          selectedDistrict={selectedDistrict}
         />
+
+        {/* Real-time District Emergency Push Alert Banner */}
+        {activeDistrictAlert && (
+          <div className="mx-3 mt-2 bg-gradient-to-r from-rose-600 via-rose-500 to-pink-600 text-white rounded-2xl p-3 shadow-xl border border-rose-300/60 z-30 flex items-start justify-between gap-2 animate-bounce">
+            <div className="flex items-start gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
+                <BellRing className="w-4 h-4 text-white" />
+              </div>
+              <div className="text-xs">
+                <span className="font-black block">{activeDistrictAlert.title}</span>
+                <p className="text-[11px] text-rose-100 leading-tight mt-0.5">{activeDistrictAlert.message}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {activeDistrictAlert.spot && (
+                <button
+                  onClick={() => {
+                    setSelectedSpot(activeDistrictAlert.spot!);
+                    setActiveTab('explore');
+                    setActiveDistrictAlert(null);
+                  }}
+                  className="bg-white text-rose-600 px-2 py-1 rounded-lg font-bold text-[10.5px] shadow-sm hover:bg-rose-50 transition"
+                >
+                  ম্যাপে দেখুন
+                </button>
+              )}
+              <button
+                onClick={() => setActiveDistrictAlert(null)}
+                className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs flex items-center justify-center transition"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Main View Area */}
         <main className="flex-1 relative overflow-hidden flex flex-col bg-[#FAFAFA]">
@@ -533,6 +672,20 @@ export default function App() {
         <SosModal isOpen={showSosModal} onClose={() => setShowSosModal(false)} />
 
         <FlashAlertModal isOpen={showFlashModal} onClose={() => setShowFlashModal(false)} />
+
+        <DistrictAlertModal
+          isOpen={showDistrictAlertModal}
+          onClose={() => setShowDistrictAlertModal(false)}
+          selectedDistrict={selectedDistrict}
+          onSelectDistrict={(dist) => setSelectedDistrict(dist)}
+          onSpotSelect={(spotId) => {
+            const found = spots.find(s => s.id === spotId);
+            if (found) {
+              setSelectedSpot(found);
+              setActiveTab('explore');
+            }
+          }}
+        />
       </div>
     </div>
   );

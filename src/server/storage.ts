@@ -22,128 +22,6 @@ function hashPassword(password: string): string {
   return crypto.createHash('sha256').update(password + 'CIVIC_DEFENSE_SALT').digest('hex');
 }
 
-// Initial realistic spots extended across Bangladesh
-const EXTENDED_REAL_SPOTS: ExtortionSpot[] = [
-  ...INITIAL_SPOTS,
-  {
-    id: 9,
-    name: "সায়েদাবাদ আন্তঃজেলা বাস টার্মিনাল",
-    division: "ঢাকা",
-    area: "যাত্রাবাড়ী, ঢাকা",
-    category: "পরিবহন",
-    syndicateId: "syn_01",
-    syndicateName: "সায়েদাবাদ শ্রমিক ফেডারেশন নামধারী চক্র",
-    rate: "১২০",
-    unit: "বাস প্রতি ট্রিপ",
-    status: "RED",
-    score: 92,
-    distance: "৫.৪ কিমি",
-    coords: [23.7142, 90.4285],
-    upvotes: 312,
-    downvotes: 11,
-    evidenceType: "RECEIPT",
-    evidenceTitle: "অবৈধ টার্মিনাল উন্নয়ন ফি রসিদ",
-    evidenceMeta: "স্ক্যান কপি • মেটাডেটা যাচাইকৃত",
-    ipfsCid: "bafybeie7v2p9m1x8q3n4w7z",
-    updates: ["বাসে জোরপূর্বক টোকেন সেঁটে টাকা আদায়ের অভিযোগ", "ডিএমপি ট্রাফিক বিভাগকে অবহিত করা হয়েছে"],
-    policeStation: "যাত্রাবাড়ী থানা",
-    reportedAt: "গতকাল সন্ধ্যা ৭:০০",
-    reportedByHash: "sha256_3b8a192c",
-    estimatedDailyCollection: "৳ ৩,৮০,০০০"
-  },
-  {
-    id: 10,
-    name: "নারায়ণগঞ্জ শীতলক্ষ্যা সেন্ট্রাল ঘাট",
-    division: "ঢাকা",
-    area: "সদর, নারায়ণগঞ্জ",
-    category: "নদীঘাট",
-    syndicateId: "syn_04",
-    syndicateName: "শীতলক্ষ্যা কার্গো লাইনম্যান সেল",
-    rate: "৮০",
-    unit: "বাল্কহেড ট্রলার প্রতি",
-    status: "YELLOW",
-    score: 68,
-    distance: "১৬.২ কিমি",
-    coords: [23.6238, 90.5000],
-    upvotes: 84,
-    downvotes: 12,
-    evidenceType: "AUDIO",
-    evidenceTitle: "নৌ-পুলিশের সামনে চাঁদা দাবির গোপন অডিও",
-    evidenceMeta: "দৈর্ঘ্য: ০১:০৫ মিনিট • পিচ-শিফটেড",
-    ipfsCid: "bafybeid9n2v7x4p1k8q5w3a",
-    updates: ["নতুন প্রমাণাদি জমা পড়েছে, জুরি কনসেনসাস সক্রিয়"],
-    policeStation: "নারায়ণগঞ্জ সদর মডেল থানা",
-    reportedAt: "আজ সকাল ৯:৩০",
-    reportedByHash: "sha256_c9103e4f",
-    estimatedDailyCollection: "৳ ১,২০,০০০"
-  },
-  {
-    id: 11,
-    name: "সিলেট কদমতলী কেন্দ্রীয় বাস টার্মিনাল",
-    division: "সিলেট",
-    area: "দক্ষিণ সুরমা, সিলেট",
-    category: "পরিবহন",
-    syndicateId: "syn_02",
-    syndicateName: "সুরমা পরিবহন কালেকশন গ্রুপ",
-    rate: "১০০",
-    unit: "মিনিবাস প্রতি",
-    status: "RED",
-    score: 87,
-    distance: "২০২ কিমি",
-    coords: [24.8821, 91.8712],
-    upvotes: 198,
-    downvotes: 15,
-    evidenceType: "RECEIPT",
-    evidenceTitle: "অবৈধ গেটপাস রসিদ বহি",
-    evidenceMeta: "এসএমপি গোয়েন্দা টিম ক্রস-রেফারেন্সড",
-    ipfsCid: "bafybeia5x9p2m7v1k3q8n4w",
-    updates: ["হাইওয়ে পুলিশের টহল বাড়ানো হয়েছে"],
-    policeStation: "দক্ষিণ সুরমা থানা",
-    reportedAt: "৩ দিন পূর্বে",
-    reportedByHash: "sha256_55e219aa",
-    estimatedDailyCollection: "৳ ২,১০,০০০"
-  }
-];
-
-const INITIAL_ACTIVITIES: ActivityItem[] = [
-  {
-    id: 'act_1',
-    type: 'REPORT_SUBMITTED',
-    title: 'কাওরান বাজার পাইকারি আড়ত স্পটে নতুন সাক্ষ্য যুক্ত হয়েছে',
-    subtitle: 'একজন প্রত্যক্ষদর্শী নাগরিক অডিও ফরেনসিক প্রমাণ প্রদান করেছেন',
-    timestamp: '১০ মিনিট পূর্বে',
-    spotId: 1,
-    division: 'ঢাকা'
-  },
-  {
-    id: 'act_2',
-    type: 'JURY_VERDICT',
-    title: 'মিরপুর ১০ ফুটপাত স্পটে জুরি কনসেনসাস স্কোর বৃদ্ধি পেয়েছে',
-    subtitle: 'স্থানীয় ৩ জন যাচাইকৃত জুরি অভিযোগটি সত্য হিসেবে অনুমোদন দিয়েছেন',
-    timestamp: '২৫ মিনিট পূর্বে',
-    spotId: 3,
-    division: 'ঢাকা'
-  },
-  {
-    id: 'act_3',
-    type: 'ZONE_LIBERATED',
-    title: 'খুলনা রূপসা ঘাটকে প্রশাসন কর্তৃক "মুক্ত এলাকা" ঘোষণা',
-    subtitle: 'যৌথবাহিনীর নিয়মিত টহলে দীর্ঘদিনের অবৈধ চাঁদা আদায় শূন্যে নেমে এসেছে',
-    timestamp: '২ ঘণ্টা পূর্বে',
-    spotId: 8,
-    division: 'খুলনা'
-  },
-  {
-    id: 'act_4',
-    type: 'VOTE_CAST',
-    title: 'গাবতলী ইন্টার-সিটি বাস টার্মিনালে নতুন নাগরিক ভোট',
-    subtitle: 'যাত্রী ও পরিবহন শ্রমিক ঐক্য অভিযোগের পক্ষে অবস্থান নিয়েছে',
-    timestamp: '৩ ঘণ্টা পূর্বে',
-    spotId: 2,
-    division: 'ঢাকা'
-  }
-];
-
 function initDatabase(): DatabaseSchema {
   if (fs.existsSync(DB_PATH)) {
     try {
@@ -157,7 +35,7 @@ function initDatabase(): DatabaseSchema {
     }
   }
 
-  // Pre-seeded authentic users for instantaneous testing and live login
+  // Pre-seeded authentic users for live login
   const defaultUsers: User[] = [
     {
       id: 'usr_citizen_1',
@@ -168,8 +46,8 @@ function initDatabase(): DatabaseSchema {
       zkpHash: 'sha256_9c41f7e340a8',
       karma: 185,
       createdAt: '২০২৬-০১-১৫',
-      votedSpotIds: { 1: 'UP', 2: 'UP' },
-      reportedSpotIds: [1],
+      votedSpotIds: {},
+      reportedSpotIds: [],
       isVerified: true
     },
     {
@@ -181,7 +59,7 @@ function initDatabase(): DatabaseSchema {
       zkpHash: 'sha256_b219e04a77c0',
       karma: 340,
       createdAt: '২০২৬-০২-১০',
-      votedSpotIds: { 3: 'UP', 7: 'DOWN' },
+      votedSpotIds: {},
       reportedSpotIds: [],
       isVerified: true
     },
@@ -195,7 +73,7 @@ function initDatabase(): DatabaseSchema {
       karma: 520,
       createdAt: '২০২৫-১১-২০',
       votedSpotIds: {},
-      reportedSpotIds: [6],
+      reportedSpotIds: [],
       isVerified: true
     }
   ];
@@ -209,10 +87,10 @@ function initDatabase(): DatabaseSchema {
   const initialData: DatabaseSchema = {
     users: defaultUsers,
     userPasswords: defaultPasswords,
-    spots: EXTENDED_REAL_SPOTS,
-    syndicates: SYNDICATES,
-    wallets: BLACKLISTED_WALLETS,
-    activities: INITIAL_ACTIVITIES
+    spots: [],
+    syndicates: [],
+    wallets: [],
+    activities: []
   };
 
   try {

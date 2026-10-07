@@ -78,7 +78,9 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ spots, onNavigateT
     return { addedPerKg, monthlyTotal };
   }, [econVolume, econTruckSurcharge]);
 
-  const maxMonthValue = Math.max(...MONTHLY_TRENDS.map(m => m.reportsCount));
+  const maxMonthValue = MONTHLY_TRENDS.length > 0
+    ? Math.max(...MONTHLY_TRENDS.map(m => m.reportsCount))
+    : 100;
 
   return (
     <div className="flex-1 p-4 overflow-y-auto space-y-4 max-w-3xl mx-auto w-full">
@@ -225,65 +227,79 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ spots, onNavigateT
         </div>
 
         {/* Vertical Bar Graph */}
-        <div className="h-40 flex items-end justify-between gap-2 pt-6 pb-2 px-1 border-b border-slate-100">
-          {MONTHLY_TRENDS.map((item, idx) => {
-            const heightPercent = Math.round((item.reportsCount / maxMonthValue) * 100);
-            const isSelected = activeMonthIdx === idx;
+        {MONTHLY_TRENDS.length === 0 ? (
+          <div className="py-8 text-center space-y-1.5 border-b border-slate-100">
+            <BarChart2 className="w-8 h-8 text-slate-300 mx-auto" />
+            <p className="text-xs font-bold text-slate-700">ফায়ারবেস ডাটাবেসে মাসিক কোনো ট্রেন্ড রেকর্ড নেই</p>
+            <p className="text-[11px] text-slate-400">
+              নাগরিকরা অভিযোগ দাখিল করলে স্বয়ংক্রিয়ভাবে মাসিক ট্রেন্ড চার্ট জেনারেট হবে।
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="h-40 flex items-end justify-between gap-2 pt-6 pb-2 px-1 border-b border-slate-100">
+              {MONTHLY_TRENDS.map((item, idx) => {
+                const heightPercent = Math.round((item.reportsCount / maxMonthValue) * 100);
+                const isSelected = activeMonthIdx === idx;
 
-            return (
-              <div
-                key={item.month}
-                onClick={() => setActiveMonthIdx(idx)}
-                className="flex-1 flex flex-col items-center cursor-pointer group h-full justify-end"
-              >
-                {/* Tooltip on active */}
-                <div
-                  className={`text-[9px] font-bold mb-1 transition-opacity ${
-                    isSelected ? 'opacity-100 text-rose-600 font-num' : 'opacity-0 group-hover:opacity-100 text-slate-400'
-                  }`}
-                >
-                  {item.reportsCount}
-                </div>
-
-                {/* The Bar */}
-                <div className="w-full max-w-[32px] bg-slate-100 rounded-t-lg overflow-hidden flex flex-col justify-end h-full">
+                return (
                   <div
-                    style={{ height: `${heightPercent}%` }}
-                    className={`w-full rounded-t-lg transition-all duration-300 ${
-                      isSelected
-                        ? 'bg-gradient-to-t from-rose-500 to-pink-400 pink-glow-subtle'
-                        : 'bg-rose-200 group-hover:bg-rose-300'
-                    }`}
-                  />
+                    key={item.month}
+                    onClick={() => setActiveMonthIdx(idx)}
+                    className="flex-1 flex flex-col items-center cursor-pointer group h-full justify-end"
+                  >
+                    {/* Tooltip on active */}
+                    <div
+                      className={`text-[9px] font-bold mb-1 transition-opacity ${
+                        isSelected ? 'opacity-100 text-rose-600 font-num' : 'opacity-0 group-hover:opacity-100 text-slate-400'
+                      }`}
+                    >
+                      {item.reportsCount}
+                    </div>
+
+                    {/* The Bar */}
+                    <div className="w-full max-w-[32px] bg-slate-100 rounded-t-lg overflow-hidden flex flex-col justify-end h-full">
+                      <div
+                        style={{ height: `${heightPercent}%` }}
+                        className={`w-full rounded-t-lg transition-all duration-300 ${
+                          isSelected
+                            ? 'bg-gradient-to-t from-rose-500 to-pink-400 pink-glow-subtle'
+                            : 'bg-rose-200 group-hover:bg-rose-300'
+                        }`}
+                      />
+                    </div>
+
+                    <span
+                      className={`text-[10px] mt-2 tracking-tight ${
+                        isSelected ? 'font-bold text-slate-900' : 'text-slate-400'
+                      }`}
+                    >
+                      {item.monthEn}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Selected Month Summary */}
+            {MONTHLY_TRENDS[activeMonthIdx] && (
+              <div className="bg-pink-50/60 rounded-xl p-2.5 flex justify-between items-center text-xs border border-pink-100/70">
+                <div>
+                  <span className="text-slate-600 text-[11px] block">নির্বাচিত মাস:</span>
+                  <span className="font-extrabold text-slate-900">{MONTHLY_TRENDS[activeMonthIdx].month}</span>
                 </div>
-
-                <span
-                  className={`text-[10px] mt-2 tracking-tight ${
-                    isSelected ? 'font-bold text-slate-900' : 'text-slate-400'
-                  }`}
-                >
-                  {item.monthEn}
-                </span>
+                <div className="text-right">
+                  <span className="text-[11px] text-slate-600 block">
+                    দাখিলকৃত অভিযোগ: <b className="text-rose-600 font-num">{MONTHLY_TRENDS[activeMonthIdx].reportsCount}</b> টি
+                  </span>
+                  <span className="text-[10px] text-emerald-700">
+                    মুক্ত ঘোষিত: <b className="font-num">{MONTHLY_TRENDS[activeMonthIdx].clearedCount}</b> টি স্পট
+                  </span>
+                </div>
               </div>
-            );
-          })}
-        </div>
-
-        {/* Selected Month Summary */}
-        <div className="bg-pink-50/60 rounded-xl p-2.5 flex justify-between items-center text-xs border border-pink-100/70">
-          <div>
-            <span className="text-slate-600 text-[11px] block">নির্বাচিত মাস:</span>
-            <span className="font-extrabold text-slate-900">{MONTHLY_TRENDS[activeMonthIdx].month}</span>
-          </div>
-          <div className="text-right">
-            <span className="text-[11px] text-slate-600 block">
-              দাখিলকৃত অভিযোগ: <b className="text-rose-600 font-num">{MONTHLY_TRENDS[activeMonthIdx].reportsCount}</b> টি
-            </span>
-            <span className="text-[10px] text-emerald-700">
-              মুক্ত ঘোষিত: <b className="font-num">{MONTHLY_TRENDS[activeMonthIdx].clearedCount}</b> টি স্পট
-            </span>
-          </div>
-        </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Extortion by Sector / Category Distribution */}
@@ -293,22 +309,29 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ spots, onNavigateT
           <span className="text-[10px] text-slate-400 font-normal">সর্বমোট চিহ্নিত ক্ষেত্র</span>
         </h3>
 
-        <div className="space-y-2.5">
-          {categoryPercentages.map(cat => (
-            <div key={cat.category} className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="text-slate-700 font-medium">{cat.category}</span>
-                <span className="font-bold text-slate-900 font-num">{cat.percent}% ({cat.count}টি)</span>
+        {categoryPercentages.length === 0 ? (
+          <div className="py-6 text-center space-y-1">
+            <p className="text-xs font-bold text-slate-600">বর্তমানে কোনো খাতভিত্তিক অভিযোগ নেই</p>
+            <p className="text-[10.5px] text-slate-400">নতুন স্পট রিপোর্ট করা হলে এখানে খাত অনুযায়ী শতাংশ বিভাজন দেখা যাবে।</p>
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {categoryPercentages.map(cat => (
+              <div key={cat.category} className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-700 font-medium">{cat.category}</span>
+                  <span className="font-bold text-slate-900 font-num">{cat.percent}% ({cat.count}টি)</span>
+                </div>
+                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    style={{ width: `${cat.percent}%`, backgroundColor: cat.color }}
+                    className="h-full rounded-full transition-all duration-500"
+                  />
+                </div>
               </div>
-              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  style={{ width: `${cat.percent}%`, backgroundColor: cat.color }}
-                  className="h-full rounded-full transition-all duration-500"
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Commodity Extortion Inflation Calculator */}

@@ -1,0 +1,52 @@
+{
+  "users": [
+    {
+      "id": "usr_citizen_1",
+      "name": "তানভীর আহমেদ",
+      "phoneOrEmail": "01711000001",
+      "division": "ঢাকা",
+      "role": "CITIZEN",
+      "zkpHash": "sha256_9c41f7e340a8",
+      "karma": 185,
+      "createdAt": "২০২৬-০১-১৫",
+      "votedSpotIds": {},
+      "reportedSpotIds": [],
+      "isVerified": true
+    },
+    {
+      "id": "usr_juror_1",
+      "name": "ফারহানা ইয়াসমিন",
+      "phoneOrEmail": "01811000002",
+      "division": "ঢাকা",
+      "role": "JUROR",
+      "zkpHash": "sha256_b219e04a77c0",
+      "karma": 340,
+      "createdAt": "২০২৬-০২-১০",
+      "votedSpotIds": {},
+      "reportedSpotIds": [],
+      "isVerified": true
+    },
+    {
+      "id": "usr_investigator_1",
+      "name": "মাহবুবুর রহমান",
+      "phoneOrEmail": "01911000003",
+      "division": "ঢাকা",
+      "role": "INVESTIGATOR",
+      "zkpHash": "sha256_aa45129dee56",
+      "karma": 520,
+      "createdAt": "২০২৫-১১-২০",
+      "votedSpotIds": {},
+      "reportedSpotIds": [],
+      "isVerified": true
+    }
+  ],
+  "userPasswords": {
+    "usr_citizen_1": "0579928c313c2fea242e047d08f02c9e1c0f582ad1305a045eb7f9dfa4349589",
+    "usr_juror_1": "0579928c313c2fea242e047d08f02c9e1c0f582ad1305a045eb7f9dfa4349589",
+    "usr_investigator_1": "0579928c313c2fea242e047d08f02c9e1c0f582ad1305a045eb7f9dfa4349589"
+  },
+  "spots": [],
+  "syndicates": [],
+  "wallets": [],
+  "activities": []
+}

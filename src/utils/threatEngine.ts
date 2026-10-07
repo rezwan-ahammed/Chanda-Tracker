@@ -46,6 +46,45 @@ export interface ThreatAnalysisReport {
   analysisTimestamp: string;
 }
 
+export const STANDARD_SAFETY_ADVISORIES: SafetyAdvisory[] = [
+  {
+    id: 'adv_pedestrians',
+    targetGroup: 'সাধারণ পথচারী ও যাত্রী',
+    riskScenario: 'ফুটপাত দখল ও মোড়ে মোড়ে টোকেন চাঁদাবাজির মুখে সাধারণ চলাচলে হুমকি',
+    preventiveProtocols: [
+      'হটস্পট চিহ্নিত জোনসমূহে নগদ টাকার প্রকাশ্য লেনদেন পরিহার করুন।',
+      'সন্দেহভাজনদের মুখোমুখি হলে তর্কাতর্কি না করে অ্যাপের "ক্যালকুলেটর স্টিলথ মোড" চালু করুন।',
+      'জরুরি প্রয়োজনে "কমিউনিটি ফ্ল্যাশ অ্যালার্ট" বাটন চেপে আশপাশের ২০০ মিটারের লোকজনকে নীরব সংকেত দিন।',
+    ],
+    safeBypassRoute: 'প্রধান সড়কের মূল ফুটপাত দিয়ে দলবদ্ধভাবে চলুন; নির্জন গলি বা সংযোগ লেন পরিহার করুন।',
+    emergencyStep: 'সরাসরি ৯৯৯ ডায়াল করুন অথবা দ্রুত নিকটবর্তী পুলিশ বক্সে আশ্রয় নিন।',
+  },
+  {
+    id: 'adv_transporters',
+    targetGroup: 'পিকআপ, ট্রাক ও ভ্যান চালক',
+    riskScenario: 'মালামাল লোড-আনলোডের সময় জোরপূর্বক রশিদ ও ভুয়া টোকেন চাপিয়ে অর্থ দাবি',
+    preventiveProtocols: [
+      'রাত ৩:০০ থেকে সকাল ৬:০০টার মধ্যে ট্রিপ নেওয়ার সময় সর্বদা ২ জন স্টাফ একত্রে থাকুন।',
+      'ড্যাশক্যাম বা মোবাইল ক্যামেরা স্ট্যান্ড সক্রিয় রাখুন যাতে হুমকিদাতাদের মুখচ্ছবি ধারণ করা যায়।',
+      'চাঁদা দাবিকারীদের নামের রসিদ বা স্লিপের ছবি তুলে সঙ্গে সঙ্গে অ্যাপের "অভিযোগ দাখিল" পাইপলাইনে জমা দিন।',
+    ],
+    safeBypassRoute: 'ম্যাপের "সেফ রুট" টগল সক্রিয় করে প্রস্তাবিত সবুজ ড্যাশড বাইপাস হাইওয়ে ব্যবহার করুন।',
+    emergencyStep: 'অ্যাপ থেকে ১-ক্লিকে "অটো-জিডি ড্রাফট" কপি করে সংশ্লিষ্ট থানার ওসির নিকট দাখিল করুন।',
+  },
+  {
+    id: 'adv_hawkers',
+    targetGroup: 'কাঁচাবাজারের আড়তদার ও ক্ষুদ্র হকার',
+    riskScenario: 'দৈনিক বসার চাঁদা না দিলে দোকান ভাঙচুর ও মালামাল ছিনতাইয়ের হুমকি',
+    preventiveProtocols: [
+      'একা একা চাঁদা না দিয়ে বাজার ব্যবসায়ী ঐক্য পরিষদ গঠন করে সম্মিলিত প্রতিরোধ গড়ে তুলুন।',
+      'লাইনম্যানদের ব্যবহৃত এমএফএস (বিকাশ/নগদ) নম্বর চিহ্নিত করে অ্যাপের "শ্যাডো ওয়ালেট" ব্ল্যাকলিস্টে যুক্ত করুন।',
+      'জুরি রিভিউতে সত্যতার পক্ষে ভোট প্রদান করে এলাকাকে দ্রুত রেড জোন হিসেবে তালিকাভুক্ত করান।',
+    ],
+    safeBypassRoute: 'সিটি কর্পোরেশনের নির্ধারিত মুক্ত পাইকারি শেডে স্থানান্তর প্রক্রিয়া ত্বরান্বিত করুন।',
+    emergencyStep: 'র‍্যাব হটলাইনে (০১৭৭৭-৭২০০২৯) কল দিয়ে চাঁদাবাজদের বর্তমান অবস্থান জানিয়ে যৌথ অভিযানের অনুরোধ জানান।',
+  },
+];
+
 export function computeThreatAnalysis(
   spots: ExtortionSpot[],
   syndicates: Syndicate[],
@@ -54,6 +93,8 @@ export function computeThreatAnalysis(
   const relevantSpots = selectedDivision === 'সকল'
     ? spots
     : spots.filter(s => s.division === selectedDivision);
+
+  const advisories = STANDARD_SAFETY_ADVISORIES;
 
   // 1. Calculate Escalation Forecasts
   const forecasts: EscalationForecast[] = relevantSpots.map(spot => {
@@ -134,82 +175,35 @@ export function computeThreatAnalysis(
   // Sort by escalation probability descending
   forecasts.sort((a, b) => b.escalationProbability - a.escalationProbability);
 
-  // 2. Corridors
-  const corridors: CorridorPattern[] = [
-    {
-      id: 'corridor_dhaka_supply',
-      name: 'ঢাকা সেন্ট্রাল পাইকারি খাদ্য সরবরাহ করিডোর',
-      riskLevel: 'CRITICAL',
-      affectedNodes: ['কাওরান বাজার পাইকারি আড়ত', 'তেজগাঁও ট্রাকস্ট্যান্ড', 'যাত্রাবাড়ী চৌরাস্তা'],
-      connectingSyndicate: 'লাইনম্যান জাকির সিন্ডিকেট ও সহযোগী সেল',
-      peakHours: 'ভোর ৩:৩০ – সকাল ৭:০০',
-      threatDescription: 'সবজি ও খাদ্যশস্যবাহী পিকআপ আটকে প্রতি ভ্যান/ট্রাক থেকে জোরপূর্বক ৫০–২০০ টাকা আদায়। টাকা না দিলে মালামাল আনলোডে প্রতিবন্ধকতা।',
-      safeAlternative: 'মিরপুর-রোকেয়া সরণি ও হাতিরঝিল এক্সপ্রেস বাইপাস দিয়ে রাত ৪টার পূর্বে পণ্য খালাস।',
-      dailyExtortionVolume: '৳ ৫,৬০,০০০+ দৈনিক',
-    },
-    {
-      id: 'corridor_western_transit',
-      name: 'ওয়েস্টার্ন ইন্টার-সিটি প্যাসেঞ্জার ও বাস করিডোর',
-      riskLevel: 'HIGH',
-      affectedNodes: ['গাবতলী ইন্টার-সিটি বাস টার্মিনাল', 'আমিনবাজার সেতু', 'হেমায়েতপুর সংযোগ'],
-      connectingSyndicate: 'তুরাগ লাইনম্যান গ্রুপ',
-      peakHours: 'রাত ৮:০০ – রাত ১১:৪৫',
-      threatDescription: 'দূরপাল্লার বাসে ভুয়া কল্যাণ সমিতি ও টার্মিনাল রক্ষণাবেক্ষণ টোকেনের মাধ্যমে ১৫০–৩০০ টাকা আদায়।',
-      safeAlternative: 'কাউন্টার বুকিং পূর্বেই সম্পন্ন রাখা এবং কোনো অননুমোদিত ক্যাডারকে নগদ প্রদান না করে ট্রিপল নাইনে জানানো।',
-      dailyExtortionVolume: '৳ ৪,২০,০০০+ দৈনিক',
-    },
-    {
-      id: 'corridor_ctg_port',
-      name: 'চট্টগ্রাম বন্দর লজিস্টিকস ও কন্টেইনার আর্টারি',
-      riskLevel: 'CRITICAL',
-      affectedNodes: ['চট্টগ্রাম পোর্ট এক্সেস রোড', 'নিমতলা ক্রসিং', 'বারিক বিল্ডিং মোড়'],
-      connectingSyndicate: 'কর্ণফুলী লজিস্টিকস ছদ্মবেশী চক্র',
-      peakHours: 'বিকাল ৫:০০ – রাত ১০:০০',
-      threatDescription: 'আমদানি-রপ্তানি কন্টেইনারবাহী ট্রেইলার আটকে আনঅফিসিয়াল রোড সিকিউরিটি স্লিপ চাপিয়ে ৩৫০ টাকা চাঁদা দাবি।',
-      safeAlternative: 'সিএমপি পেট্রোল দলের সমন্বয়ে কনভয় পদ্ধতিতে কন্টেইনার পরিবহন।',
-      dailyExtortionVolume: '৳ ৭,৮০,০০০+ দৈনিক',
-    },
-  ];
+  // If no relevant spots exist in database
+  if (relevantSpots.length === 0) {
+    return {
+      overallThreatScore: 0,
+      overallThreatLevel: 'MODERATE',
+      forecasts: [],
+      corridors: [],
+      advisories,
+      summary: 'ফায়ারবেস ডাটাবেসে বর্তমানে কোনো সক্রিয় চাঁদাবাজি স্পট নথিভুক্ত নেই। কোনো অপরাধ স্পট রিপোর্ট বা অভিযোগ দাখিল করা হলে স্বয়ংক্রিয়ভাবে থ্রেট ইঞ্জিন বিশ্লেষণ হিসাব করবে। এলাকা নিরাপদ।',
+      analysisTimestamp: new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' }),
+    };
+  }
 
-  // 3. Proactive Safety Advisories
-  const advisories: SafetyAdvisory[] = [
-    {
-      id: 'adv_pedestrians',
-      targetGroup: 'সাধারণ পথচারী ও যাত্রী',
-      riskScenario: 'ফুটপাত দখল ও মোড়ে মোড়ে টোকেন চাঁদাবাজির মুখে সাধারণ চলাচলে হুমকি',
-      preventiveProtocols: [
-        'হটস্পট চিহ্নিত জোনসমূহে নগদ টাকার প্রকাশ্য লেনদেন পরিহার করুন।',
-        'সন্দেহভাজনদের মুখোমুখি হলে তর্কাতর্কি না করে অ্যাপের "ক্যালকুলেটর স্টিলথ মোড" চালু করুন।',
-        'জরুরি প্রয়োজনে "কমিউনিটি ফ্ল্যাশ অ্যালার্ট" বাটন চেপে আশপাশের ২০০ মিটারের লোকজনকে নীরব সংকেত দিন।',
-      ],
-      safeBypassRoute: 'প্রধান সড়কের মূল ফুটপাত দিয়ে দলবদ্ধভাবে চলুন; নির্জন গলি বা সংযোগ লেন পরিহার করুন।',
-      emergencyStep: 'সরাসরি ৯৯৯ ডায়াল করুন অথবা দ্রুত নিকটবর্তী পুলিশ বক্সে আশ্রয় নিন।',
-    },
-    {
-      id: 'adv_transporters',
-      targetGroup: 'পিকআপ, ট্রাক ও ভ্যান চালক',
-      riskScenario: 'মালামাল লোড-আনলোডের সময় জোরপূর্বক রশিদ ও ভুয়া টোকেন চাপিয়ে অর্থ দাবি',
-      preventiveProtocols: [
-        'রাত ৩:০০ থেকে সকাল ৬:০০টার মধ্যে ট্রিপ নেওয়ার সময় সর্বদা ২ জন স্টাফ একত্রে থাকুন।',
-        'ড্যাশক্যাম বা মোবাইল ক্যামেরা স্ট্যান্ড সক্রিয় রাখুন যাতে হুমকিদাতাদের মুখচ্ছবি ধারণ করা যায়।',
-        'চাঁদা দাবিকারীদের নামের রসিদ বা স্লিপের ছবি তুলে সঙ্গে সঙ্গে অ্যাপের "অভিযোগ দাখিল" পাইপলাইনে জমা দিন।',
-      ],
-      safeBypassRoute: 'ম্যাপের "সেফ রুট" টগল সক্রিয় করে প্রস্তাবিত সবুজ ড্যাশড বাইপাস হাইওয়ে ব্যবহার করুন।',
-      emergencyStep: 'অ্যাপ থেকে ১-ক্লিকে "অটো-জিডি ড্রাফট" কপি করে সংশ্লিষ্ট থানার ওসির নিকট দাখিল করুন।',
-    },
-    {
-      id: 'adv_hawkers',
-      targetGroup: 'কাঁচাবাজারের আড়তদার ও ক্ষুদ্র হকার',
-      riskScenario: 'দৈনিক বসার চাঁদা না দিলে দোকান ভাঙচুর ও মালামাল ছিনতাইয়ের হুমকি',
-      preventiveProtocols: [
-        'একা একা চাঁদা না দিয়ে বাজার ব্যবসায়ী ঐক্য পরিষদ গঠন করে সম্মিলিত প্রতিরোধ গড়ে তুলুন।',
-        'লাইনম্যানদের ব্যবহৃত এমএফএস (বিকাশ/নগদ) নম্বর চিহ্নিত করে অ্যাপের "শ্যাডো ওয়ালেট" ব্ল্যাকলিস্টে যুক্ত করুন।',
-        'জুরি রিভিউতে সত্যতার পক্ষে ভোট প্রদান করে এলাকাকে দ্রুত রেড জোন হিসেবে তালিকাভুক্ত করান।',
-      ],
-      safeBypassRoute: 'সিটি কর্পোরেশনের নির্ধারিত মুক্ত পাইকারি শেডে স্থানান্তর প্রক্রিয়া ত্বরান্বিত করুন।',
-      emergencyStep: 'র‍্যাব হটলাইনে (০১৭৭৭-৭২০০২৯) কল দিয়ে চাঁদাবাজদের বর্তমান অবস্থান জানিয়ে যৌথ অভিযানের অনুরোধ জানান।',
-    },
-  ];
+  // 2. Dynamic Corridors formed from actual spots in the database
+  const corridors: CorridorPattern[] = [];
+  const redSpots = relevantSpots.filter(s => s.status === 'RED');
+  if (redSpots.length >= 2) {
+    corridors.push({
+      id: `corridor_${Date.now()}`,
+      name: `${selectedDivision === 'সকল' ? 'আন্তঃবিভাগীয়' : selectedDivision} সক্রিয় অপরাধ করিডোর`,
+      riskLevel: 'CRITICAL',
+      affectedNodes: redSpots.slice(0, 3).map(s => s.name),
+      connectingSyndicate: redSpots[0].syndicateName || 'শনাক্তকরণাধীন চক্র',
+      peakHours: 'সন্ধ্যা ৬:০০ – রাত ১১:০০',
+      threatDescription: `চিহ্নিত রেড জোন স্পটসমূহে জোরপূর্বক চাঁদা আদায়ের নিয়মিত তৎপরতা নথিভুক্ত।`,
+      safeAlternative: 'বিকল্প সংযোগ সড়ক ব্যবহার ও স্থানীয় যৌথবাহিনীকে অবহিত করা।',
+      dailyExtortionVolume: `৳ ${(redSpots.length * 15000).toLocaleString('bn-BD')}+ দৈনিক`,
+    });
+  }
 
   // Overall Threat Score Calculation
   const highRiskCount = forecasts.filter(f => f.escalationProbability >= 70).length;

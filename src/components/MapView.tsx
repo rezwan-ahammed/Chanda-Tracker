@@ -337,7 +337,7 @@ ${spot.updates.map((u, i) => `${i + 1}. ${u}`).join('\n')}
       </div>
 
       {/* Draggable Frosted Glass Bottom Sheet */}
-      {selectedSpot && (
+      {selectedSpot ? (
         <div
           className={`absolute bottom-3 left-3 right-3 z-20 glass-card rounded-[28px] p-4 transition-all duration-300 border border-white/95 ${
             sheetExpanded ? 'max-h-[72%] overflow-y-auto' : 'max-h-[92px] overflow-hidden'
@@ -526,7 +526,19 @@ ${spot.updates.map((u, i) => `${i + 1}. ${u}`).join('\n')}
             </div>
           )}
         </div>
-      )}
+      ) : spots.length === 0 ? (
+        <div className="absolute bottom-6 left-4 right-4 z-20 glass-card rounded-3xl p-5 border border-white/95 shadow-xl text-center space-y-2">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-200">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
+          <h3 className="text-sm font-extrabold text-slate-800">
+            ফায়ারবেস ডাটাবেসে বর্তমানে কোনো স্পট নথিভুক্ত নেই
+          </h3>
+          <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
+            ক্লাউড ডাটাবেস সম্পূর্ণ সক্রিয় ও লাইভ। আপনি নিচের প্লাস (<strong className="text-rose-600">+</strong>) বাটনে ট্যাপ করে আপনার এলাকার প্রথম চাঁদাবাজি স্পট বা অভিযোগ দাখিল করতে পারেন।
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 };

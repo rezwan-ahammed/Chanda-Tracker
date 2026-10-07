@@ -27,6 +27,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   const [unit, setUnit] = useState('পিকআপ প্রতি');
   const [category, setCategory] = useState<SpotCategory>('পরিবহন');
   const [policeStation, setPoliceStation] = useState('');
+  const [threatLevel, setThreatLevel] = useState<'RED' | 'YELLOW'>('RED');
 
   // Real Evidence mode: AUDIO or PHOTO
   const [activeEvidenceTab, setActiveEvidenceTab] = useState<'AUDIO' | 'PHOTO'>('PHOTO');
@@ -69,8 +70,8 @@ export const ReportModal: React.FC<ReportModalProps> = ({
       syndicateName: 'শনাক্তকরণাধীন চক্র',
       rate,
       unit,
-      status: 'YELLOW',
-      score: 64,
+      status: threatLevel,
+      score: threatLevel === 'RED' ? 85 : 64,
       distance: '৪০০ মিটার',
       coords: defaultCoords,
       evidenceType,
@@ -258,6 +259,43 @@ export const ReportModal: React.FC<ReportModalProps> = ({
                 placeholder="যেমন: মিরপুর মডেল থানা"
                 className="w-full glass-pill p-2 rounded-xl text-xs text-slate-800 border border-slate-200 focus:outline-none"
               />
+            </div>
+
+            {/* Threat Level Selection & Real-time Alert Trigger */}
+            <div>
+              <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                ঝুঁকির তীব্রতা ও পুশ অ্যালার্ট (Threat Urgency)
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setThreatLevel('RED')}
+                  className={`p-2 rounded-xl border text-left transition ${
+                    threatLevel === 'RED'
+                      ? 'bg-rose-50 border-rose-400 text-rose-700 ring-1 ring-rose-200'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <span className="block text-xs font-bold text-rose-700">🚨 রেড জোন (উচ্চ ঝুঁকি)</span>
+                  <span className="text-[9.5px] text-rose-500 block leading-tight mt-0.5">
+                    জেলায় রিয়েল-টাইম পুশ অ্যালার্ট (FCM) যাবে
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setThreatLevel('YELLOW')}
+                  className={`p-2 rounded-xl border text-left transition ${
+                    threatLevel === 'YELLOW'
+                      ? 'bg-amber-50 border-amber-400 text-amber-800 ring-1 ring-amber-200'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <span className="block text-xs font-bold text-amber-800">⚠️ হলুদ জোন (তদন্তাধীন)</span>
+                  <span className="text-[9.5px] text-amber-600 block leading-tight mt-0.5">
+                    জুরি ও কনসেনসাস পর্যালোচনায় জমা হবে
+                  </span>
+                </button>
+              </div>
             </div>
 
             {/* REAL PROOF UPLOAD / RECORDING SECTION */}

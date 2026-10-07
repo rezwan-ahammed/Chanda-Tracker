@@ -65,17 +65,11 @@ export const RadarView: React.FC<RadarViewProps> = ({
     });
   }, [spots, userLocation]);
 
-  const [selectedNode, setSelectedNode] = useState<RadarNode>(dynamicRadarNodes[0] || {
-    id: 'n1',
-    name: 'কাওরান বাজার আড়ত',
-    distance: '৩২০ মিটার',
-    distanceMeters: 320,
-    threat: 'HIGH',
-    syndicate: 'লাইনম্যান জাকির সিন্ডিকেট',
-    role: 'স্পট কালেকটর ও ক্যাডার প্রধান',
-    top: '22%',
-    left: '70%',
-  });
+  const [selectedNode, setSelectedNode] = useState<RadarNode | null>(dynamicRadarNodes[0] || null);
+
+  React.useEffect(() => {
+    setSelectedNode(dynamicRadarNodes[0] || null);
+  }, [dynamicRadarNodes]);
 
   const handleSendAlert = () => {
     onTriggerSilentAlert();
@@ -132,7 +126,7 @@ export const RadarView: React.FC<RadarViewProps> = ({
             onClick={() => setSelectedNode(node)}
             style={{ top: node.top, left: node.left }}
             className={`absolute z-20 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold shadow-md border transition-transform active:scale-90 ${
-              selectedNode.id === node.id
+              selectedNode?.id === node.id
                 ? 'bg-rose-600 text-white border-white ring-2 ring-rose-400 scale-105'
                 : node.threat === 'HIGH'
                 ? 'bg-white text-rose-600 border-rose-200 hover:bg-rose-50'
@@ -150,59 +144,75 @@ export const RadarView: React.FC<RadarViewProps> = ({
       </div>
 
       {/* Selected Node Details Box */}
-      <div className="glass-card p-3.5 rounded-2xl border border-pink-100/80 space-y-2">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-1.5">
-            <AlertTriangle className="w-4 h-4 text-rose-600" />
-            <h3 className="text-xs font-extrabold text-slate-900">{selectedNode.name}</h3>
-          </div>
-          <span
-            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-              selectedNode.threat === 'HIGH'
-                ? 'bg-rose-100 text-rose-700'
-                : 'bg-amber-100 text-amber-700'
-            }`}
-          >
-            প্রকৃত দূরত্ব: {selectedNode.distance}
-          </span>
-        </div>
+      {selectedNode ? (
+        <>
+          <div className="glass-card p-3.5 rounded-2xl border border-pink-100/80 space-y-2">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4 text-rose-600" />
+                <h3 className="text-xs font-extrabold text-slate-900">{selectedNode.name}</h3>
+              </div>
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  selectedNode.threat === 'HIGH'
+                    ? 'bg-rose-100 text-rose-700'
+                    : 'bg-amber-100 text-amber-700'
+                }`}
+              >
+                প্রকৃত দূরত্ব: {selectedNode.distance}
+              </span>
+            </div>
 
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="bg-white/80 p-2 rounded-xl border border-slate-100">
-            <span className="text-[10px] text-slate-400 block">সিন্ডিকেট চক্র:</span>
-            <span className="font-bold text-slate-800 truncate block">{selectedNode.syndicate}</span>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="bg-white/80 p-2 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 block">সিন্ডিকেট চক্র:</span>
+                <span className="font-bold text-slate-800 truncate block">{selectedNode.syndicate}</span>
+              </div>
+              <div className="bg-white/80 p-2 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 block">মাঠ তৎপরতা:</span>
+                <span className="font-bold text-slate-800 truncate block">{selectedNode.role}</span>
+              </div>
+            </div>
           </div>
-          <div className="bg-white/80 p-2 rounded-xl border border-slate-100">
-            <span className="text-[10px] text-slate-400 block">মাঠ তৎপরতা:</span>
-            <span className="font-bold text-slate-800 truncate block">{selectedNode.role}</span>
-          </div>
-        </div>
-      </div>
 
-      {/* Syndicate Hierarchy Box */}
-      <div className="glass-card rounded-2xl p-3.5 border border-white/90 space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-            <Users className="w-3.5 h-3.5 text-pink-500" />
-            নিকটবর্তী সক্রিয় সিন্ডিকেট কাঠামো ({selectedNode.syndicate})
-          </span>
-        </div>
+          {/* Syndicate Hierarchy Box */}
+          <div className="glass-card rounded-2xl p-3.5 border border-white/90 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <Users className="w-3.5 h-3.5 text-pink-500" />
+                নিকটবর্তী সক্রিয় সিন্ডিকেট কাঠামো ({selectedNode.syndicate})
+              </span>
+            </div>
 
-        <div className="space-y-1.5 text-xs">
-          <div className="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100">
-            <span className="text-slate-600 font-medium">শীর্ষ পৃষ্ঠপোষক (গডফাদার):</span>
-            <span className="text-slate-900 font-bold">রাজনৈতিক সেল (শনাক্তকরণাধীন)</span>
+            <div className="space-y-1.5 text-xs">
+              <div className="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100">
+                <span className="text-slate-600 font-medium">শীর্ষ পৃষ্ঠপোষক (গডফাদার):</span>
+                <span className="text-slate-900 font-bold">রাজনৈতিক সেল (শনাক্তকরণাধীন)</span>
+              </div>
+              <div className="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100">
+                <span className="text-slate-600 font-medium">ফিল্ড কমান্ডার / লাইনম্যান:</span>
+                <span className="text-rose-600 font-bold">লাইন কমান্ডার ও সহযোগী সেল</span>
+              </div>
+              <div className="flex justify-between items-center bg-rose-50/70 p-2 rounded-xl text-rose-700 font-bold border border-rose-100">
+                <span>সক্রিয় অঞ্চল ও চাঁদার ধরন:</span>
+                <span>নিয়মিত চাঁদা আদায় ও রুট নিয়ন্ত্রণ</span>
+              </div>
+            </div>
           </div>
-          <div className="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100">
-            <span className="text-slate-600 font-medium">ফিল্ড কমান্ডার / লাইনম্যান:</span>
-            <span className="text-rose-600 font-bold">লাইন কমান্ডার ও সহযোগী সেল</span>
+        </>
+      ) : (
+        <div className="glass-card p-4 rounded-2xl border border-emerald-100 text-center space-y-1.5">
+          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-200">
+            <Shield className="w-5 h-5" />
           </div>
-          <div className="flex justify-between items-center bg-rose-50/70 p-2 rounded-xl text-rose-700 font-bold border border-rose-100">
-            <span>সক্রিয় অঞ্চল ও চাঁদার ধরন:</span>
-            <span>নিয়মিত চাঁদা আদায় ও রুট নিয়ন্ত্রণ</span>
-          </div>
+          <h3 className="text-xs font-bold text-slate-800">
+            নিকটবর্তী পরিধিতে কোনো সক্রিয় চাঁদাবাজি স্পট নেই
+          </h3>
+          <p className="text-[11px] text-slate-500">
+            আপনার জিপিএস অবস্থানের নিকটবর্তী ১ কিমির মধ্যে কোনো হটস্পট রিপোর্ট করা হয়নি। এলাকা সুরক্ষিত।
+          </p>
         </div>
-      </div>
+      )}
 
       {/* Bottom Emergency Alert Button */}
       <button

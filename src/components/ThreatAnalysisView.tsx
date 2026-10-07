@@ -271,7 +271,16 @@ export const ThreatAnalysisView: React.FC<ThreatAnalysisViewProps> = ({
             <span className="text-[10px] text-slate-400">এআই প্রবাবিলিটি মডেল</span>
           </div>
 
-          {analysis.forecasts.map(forecast => {
+          {analysis.forecasts.length === 0 ? (
+            <div className="glass-card p-6 rounded-2xl text-center space-y-1.5 border border-slate-100">
+              <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
+              <h3 className="text-xs font-bold text-slate-800">কোনো ঝুঁকিপূর্ণ স্পটের পূর্বাভাস নেই</h3>
+              <p className="text-[11px] text-slate-400">
+                ফায়ারবেস ডাটাবেসে বর্তমানে এই বিভাগের জন্য কোনো সক্রিয় চাঁদাবাজি স্পট রিপোর্ট নেই। এলাকা নিরাপদ।
+              </p>
+            </div>
+          ) : (
+            analysis.forecasts.map(forecast => {
             const isImminent = forecast.urgencyLevel === 'IMMINENT';
             const isHigh = forecast.urgencyLevel === 'HIGH_RISK';
 
@@ -380,7 +389,7 @@ export const ThreatAnalysisView: React.FC<ThreatAnalysisViewProps> = ({
                 </div>
               </div>
             );
-          })}
+          }))}
         </div>
       )}
 
@@ -392,7 +401,16 @@ export const ThreatAnalysisView: React.FC<ThreatAnalysisViewProps> = ({
             <span className="text-[10px] text-slate-400">সাপ্লাই-চেইন ম্যাপিং</span>
           </div>
 
-          {analysis.corridors.map(corr => (
+          {analysis.corridors.length === 0 ? (
+            <div className="glass-card p-6 rounded-2xl text-center space-y-1.5 border border-slate-100">
+              <Route className="w-8 h-8 text-slate-300 mx-auto" />
+              <h3 className="text-xs font-bold text-slate-800">বর্তমানে কোনো সক্রিয় সিন্ডিকেট করিডোর নেই</h3>
+              <p className="text-[11px] text-slate-400">
+                একাধিক সংযুক্ত রেড জোন স্পট শনাক্ত হলে স্বয়ংক্রিয়ভাবে ঝুঁকিপূর্ণ করিডোর ম্যাপিং প্রদর্শিত হবে।
+              </p>
+            </div>
+          ) : (
+            analysis.corridors.map(corr => (
             <div key={corr.id} className="glass-card p-4 rounded-2xl border border-white/95 space-y-3">
               <div className="flex justify-between items-start gap-2">
                 <div>
@@ -450,9 +468,10 @@ export const ThreatAnalysisView: React.FC<ThreatAnalysisViewProps> = ({
                 </button>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
+    )}
 
       {/* TAB 3: PROACTIVE SAFETY ADVISORIES */}
       {activeSubTab === 'ADVISORY' && (

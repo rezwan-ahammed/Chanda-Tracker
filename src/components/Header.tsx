@@ -1,10 +1,11 @@
 import React from 'react';
-import { Bell, Phone, Calculator, ShieldCheck, UserCheck, LogIn } from 'lucide-react';
-import { User } from '../types';
+import { Bell, BellRing, Phone, Calculator, ShieldCheck, UserCheck, LogIn, Radio } from 'lucide-react';
+import { User, DivisionName } from '../types';
 
 interface HeaderProps {
   onOpenProfile: () => void;
   onOpenFlashAlert: () => void;
+  onOpenDistrictAlert: () => void;
   onOpenSos: () => void;
   onTogglePanicMode: () => void;
   onOpenNid: () => void;
@@ -12,11 +13,13 @@ interface HeaderProps {
   currentUser: User | null;
   userNidHashed: string;
   civicKarma: number;
+  selectedDistrict: DivisionName;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenProfile,
   onOpenFlashAlert,
+  onOpenDistrictAlert,
   onOpenSos,
   onTogglePanicMode,
   onOpenNid,
@@ -24,6 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
   currentUser,
   userNidHashed,
   civicKarma,
+  selectedDistrict,
 }) => {
   const roleNameMap: Record<string, string> = {
     CITIZEN: 'নাগরিক',
@@ -83,9 +87,19 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Right: Quick Action Triggers */}
       <div className="flex items-center gap-1">
         <button
+          onClick={onOpenDistrictAlert}
+          title={`জেলা ভিত্তিক রিয়েল-টাইম পুশ অ্যালার্ট (FCM) — ${selectedDistrict}`}
+          className="h-8 px-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 rounded-xl flex items-center gap-1 shadow-xs active:scale-95 transition-all relative"
+        >
+          <BellRing className="w-3.5 h-3.5 text-rose-500" />
+          <span className="text-[10.5px] font-extrabold">{selectedDistrict}</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+        </button>
+
+        <button
           onClick={onOpenFlashAlert}
           title="কমিউনিটি ফ্ল্যাশ অ্যালার্ট (২০০ মিটার নীরব সংকেত)"
-          className="w-8 h-8 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 rounded-xl flex items-center justify-center shadow-xs active:scale-95 transition-all"
+          className="w-8 h-8 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl flex items-center justify-center shadow-xs active:scale-95 transition-all"
         >
           <Bell className="w-3.5 h-3.5" />
         </button>

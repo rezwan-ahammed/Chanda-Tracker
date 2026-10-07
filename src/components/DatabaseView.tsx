@@ -87,7 +87,16 @@ export const DatabaseView: React.FC<DatabaseViewProps> = () => {
 
       {/* Syndicate List Cards */}
       <div className="space-y-3">
-        {filteredSyndicates.map(syn => {
+        {filteredSyndicates.length === 0 ? (
+          <div className="glass-card p-8 rounded-3xl text-center space-y-2 border border-slate-100">
+            <Database className="w-10 h-10 text-slate-300 mx-auto" />
+            <h3 className="text-sm font-bold text-slate-800">কোনো সিন্ডিকেট নথিভুক্ত নেই</h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              ফায়ারবেস ডাটাবেসে বর্তমানে কোনো অপরাধ চক্র তালিকাভুক্ত নেই। নাগরিক অভিযোগ ও অনুসন্ধানী অডিটের পর স্বয়ংক্রিয়ভাবে সিন্ডিকেটের হায়ারার্কি তৈরি হবে।
+            </p>
+          </div>
+        ) : (
+          filteredSyndicates.map(syn => {
           const isExpanded = expandedSyndicate === syn.id;
 
           return (
@@ -167,7 +176,7 @@ export const DatabaseView: React.FC<DatabaseViewProps> = () => {
               )}
             </div>
           );
-        })}
+        }))}
       </div>
     </div>
   );
