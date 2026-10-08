@@ -18,6 +18,10 @@ export interface User {
   votedSpotIds: Record<number, 'UP' | 'DOWN'>;
   reportedSpotIds: number[];
   isVerified: boolean;
+  avatarUrl?: string;
+  bio?: string;
+  anonymousMode?: boolean;
+  tier?: 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM';
 }
 
 export interface ExtortionSpot {

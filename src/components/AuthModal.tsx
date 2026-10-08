@@ -17,14 +17,17 @@ import {
   ExternalLink,
   ShieldAlert,
   ArrowRight,
+  KeyRound,
+  Check,
 } from 'lucide-react';
 import { DivisionName, UserRole, User } from '../types';
-import { signInWithGoogle } from '../firebase';
+import { signInWithGoogle, syncUserProfileToFirestore } from '../firebase';
 import {
   safeFetchJson,
   clientAuthenticate,
   saveClientUser,
   getClientStoredUsers,
+  clientResetPassword,
 } from '../utils/safeApi';
 
 interface AuthModalProps {
@@ -34,14 +37,20 @@ interface AuthModalProps {
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess }) => {
-  const [mode, setMode] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
+  const [mode, setMode] = useState<'LOGIN' | 'REGISTER' | 'FORGOT_PASSWORD'>('LOGIN');
 
   // Form fields
   const [name, setName] = useState('');
   const [phoneOrEmail, setPhoneOrEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [division, setDivision] = useState<DivisionName>('ঢাকা');
   const [role, setRole] = useState<UserRole>('CITIZEN');
+  const [rememberMe, setRememberMe] = useState(true);
+
+  // Forgot password fields
+  const [recoveryIdentifier, setRecoveryIdentifier] = useState('');
+  const [resetNewPassword, setResetNewPassword] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -79,11 +88,43 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
     };
     const token = saveClientUser(bypassUser, 'password123');
     localStorage.setItem('civic_auth_token', token);
+    syncUserProfileToFirestore(bypassUser).catch(() => {});
     setSuccessMessage('নাগরিক অ্যাকাউন্টে সফলভাবে প্রবেশ করা হয়েছে!');
     setTimeout(() => {
       onAuthSuccess(bypassUser, token);
       onClose();
     }, 400);
+  };
+
+  const handleResetPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    const target = recoveryIdentifier.trim();
+    if (!target || !resetNewPassword) {
+      setErrorMessage('মোবাইল নম্বর/ইমেইল এবং নতুন পাসওয়ার্ড প্রদান করুন।');
+      return;
+    }
+
+    if (resetNewPassword.length < 6) {
+      setErrorMessage('নতুন পাসওয়ার্ড ন্যূনতম ৬ অক্ষরের হতে হবে।');
+      return;
+    }
+
+    const res = clientResetPassword(target, resetNewPassword);
+    if (!res.ok) {
+      setErrorMessage(res.error || 'পাসওয়ার্ড পুনরুদ্ধারে ব্যর্থতা। সঠিক তথ্য দিন।');
+      return;
+    }
+
+    setSuccessMessage('পাসওয়ার্ড সফলভাবে আপডেট হয়েছে! লগইনে ফিরে যাওয়া হচ্ছে...');
+    setTimeout(() => {
+      setPhoneOrEmail(target);
+      setPassword(resetNewPassword);
+      setMode('LOGIN');
+      setSuccessMessage('নতুন পাসওয়ার্ড প্রস্তুত, লগইন বাটনে চাপুন।');
+    }, 1200);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -112,6 +153,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
         if (res.data.token) {
           localStorage.setItem('civic_auth_token', res.data.token);
         }
+        syncUserProfileToFirestore(res.data.user).catch(() => {});
         setTimeout(() => {
           onAuthSuccess(res.data!.user, res.data!.token);
           onClose();
@@ -124,6 +166,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
       if (clientAuth) {
         setSuccessMessage('সফলভাবে লগইন হয়েছে!');
         localStorage.setItem('civic_auth_token', clientAuth.token);
+        syncUserProfileToFirestore(clientAuth.user).catch(() => {});
         setTimeout(() => {
           onAuthSuccess(clientAuth.user, clientAuth.token);
           onClose();
@@ -149,6 +192,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
         };
         const token = saveClientUser(fallbackUser, password);
         localStorage.setItem('civic_auth_token', token);
+        syncUserProfileToFirestore(fallbackUser).catch(() => {});
         setSuccessMessage('সফলভাবে লগইন হয়েছে!');
         setTimeout(() => {
           onAuthSuccess(fallbackUser, token);
@@ -181,6 +225,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
       return;
     }
 
+    if (confirmPassword && password !== confirmPassword) {
+      setErrorMessage('পাসওয়ার্ড এবং নিশ্চিতকরণ পাসওয়ার্ড মেলেনি।');
+      return;
+    }
+
     setIsLoading(true);
     try {
       // 1. Try server registration safely
@@ -201,6 +250,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
         if (res.data.token) {
           localStorage.setItem('civic_auth_token', res.data.token);
         }
+        syncUserProfileToFirestore(res.data.user).catch(() => {});
         setTimeout(() => {
           onAuthSuccess(res.data!.user, res.data!.token);
           onClose();
@@ -225,6 +275,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
 
       const token = saveClientUser(newUser, password);
       localStorage.setItem('civic_auth_token', token);
+      syncUserProfileToFirestore(newUser).catch(() => {});
       setSuccessMessage('অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে!');
       setTimeout(() => {
         onAuthSuccess(newUser, token);
@@ -265,6 +316,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
         };
         const token = saveClientUser(localUser);
         localStorage.setItem('civic_auth_token', token);
+        syncUserProfileToFirestore(localUser).catch(() => {});
         setSuccessMessage('গুগল অ্যাকাউন্টে সফলভাবে প্রবেশ করা হয়েছে!');
         setTimeout(() => {
           onAuthSuccess(localUser, token);
@@ -302,7 +354,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
             </div>
             <div>
               <h2 className="text-base font-black text-slate-800">
-                {mode === 'LOGIN' ? 'নাগরিক লগইন' : 'নাগরিক নিবন্ধন'}
+                {mode === 'LOGIN'
+                  ? 'নাগরিক লগইন'
+                  : mode === 'REGISTER'
+                  ? 'নাগরিক নিবন্ধন'
+                  : 'পাসওয়ার্ড পুনরুদ্ধার'}
               </h2>
               <p className="text-[11px] text-slate-500 font-medium">
                 জাতীয় চাঁদাবাজি প্রতিরোধে সুরক্ষিত একাউন্ট
@@ -433,9 +489,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                পাসওয়ার্ড
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-[11px] font-bold text-slate-700">
+                  পাসওয়ার্ড
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('FORGOT_PASSWORD');
+                    setRecoveryIdentifier(phoneOrEmail);
+                    setErrorMessage(null);
+                    setSuccessMessage(null);
+                  }}
+                  className="text-[10.5px] font-bold text-rose-600 hover:text-rose-700 hover:underline"
+                >
+                  পাসওয়ার্ড ভুলে গেছেন?
+                </button>
+              </div>
               <div className="relative">
                 <input
                   type="password"
@@ -447,6 +517,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
                 />
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               </div>
+            </div>
+
+            <div className="flex items-center justify-between text-xs">
+              <label className="flex items-center gap-2 cursor-pointer select-none text-[11px] text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded text-rose-600 focus:ring-rose-500 border-slate-300"
+                />
+                <span>এই ডিভাইসে মনে রাখুন</span>
+              </label>
             </div>
 
             <button
@@ -464,7 +546,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
               )}
             </button>
           </form>
-        ) : (
+        ) : mode === 'REGISTER' ? (
           <form onSubmit={handleRegister} className="space-y-3 mt-4">
             <div>
               <label className="block text-[11px] font-bold text-slate-700 mb-1">
@@ -534,31 +616,55 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
                     onChange={(e) => setRole(e.target.value as UserRole)}
                     className="w-full pl-7 pr-2 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-rose-400 focus:bg-white"
                   >
-                    <option value="CITIZEN">সাধারণ নাগরিক</option>
-                    <option value="JUROR">জুরি সদস্য</option>
-                    <option value="INVESTIGATOR">অনুসন্ধানী প্রতিনিধি</option>
+                    <option value="CITIZEN">🛡️ সাধারণ নাগরিক</option>
+                    <option value="JUROR">⚖️ জুরি সদস্য</option>
+                    <option value="MERCHANT">💼 ব্যবসায়ী পরিষদ</option>
+                    <option value="INVESTIGATOR">🔍 অনুসন্ধানী প্রতিনিধি</option>
                   </select>
                   <Briefcase className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3" />
                 </div>
               </div>
             </div>
 
-            <div>
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                পাসওয়ার্ড (ন্যূনতম ৬ অক্ষর)
-              </label>
-              <div className="relative">
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="গোপন পাসওয়ার্ড দিন"
-                  className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-rose-400 focus:bg-white"
-                  required
-                />
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  পাসওয়ার্ড (ন্যূনতম ৬ অক্ষর)
+                </label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="পাসওয়ার্ড লিখুন"
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-rose-400 focus:bg-white"
+                    required
+                  />
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  পাসওয়ার্ড নিশ্চিত করুন
+                </label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="পুনরায় পাসওয়ার্ড দিন"
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-rose-400 focus:bg-white"
+                    required
+                  />
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                </div>
               </div>
             </div>
+
+            <p className="text-[10px] text-slate-500 leading-relaxed bg-slate-50 p-2 rounded-xl border border-slate-100">
+              🔒 <b>ক্রিপ্টোগ্রাফিক সুরক্ষা:</b> আপনার ব্যক্তিগত পরিচয় ও মোবাইল নম্বর জিরো-নলেজ প্রুফ (ZKP) হ্যাশে এনক্রিপ্ট থাকবে।
+            </p>
 
             <button
               type="submit"
@@ -574,6 +680,73 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
                 </>
               )}
             </button>
+          </form>
+        ) : (
+          /* FORGOT PASSWORD FORM */
+          <form onSubmit={handleResetPassword} className="space-y-3.5 mt-4">
+            <div className="p-3 bg-rose-50 rounded-2xl border border-rose-100 text-xs text-rose-800 space-y-1">
+              <span className="font-bold flex items-center gap-1.5 text-rose-900">
+                <KeyRound className="w-4 h-4 text-rose-600" />
+                নাগরিক পাসওয়ার্ড পুনরুদ্ধার
+              </span>
+              <p className="text-[11px] text-rose-700">
+                আপনার নিবন্ধিত ফোন নম্বর বা ইমেইল এবং নতুন পাসওয়ার্ড প্রদান করে তাৎক্ষণিক অ্যাক্সেস পুনরুদ্ধার করুন।
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                নিবন্ধিত মোবাইল নম্বর বা ইমেইল
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={recoveryIdentifier}
+                  onChange={(e) => setRecoveryIdentifier(e.target.value)}
+                  placeholder="যেমন: 01711000001"
+                  className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-rose-400 focus:bg-white"
+                  required
+                />
+                <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                নতুন পাসওয়ার্ড (ন্যূনতম ৬ অক্ষর)
+              </label>
+              <div className="relative">
+                <input
+                  type="password"
+                  value={resetNewPassword}
+                  onChange={(e) => setResetNewPassword(e.target.value)}
+                  placeholder="নতুন গোপন পাসওয়ার্ড দিন"
+                  className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-rose-400 focus:bg-white"
+                  required
+                />
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('LOGIN');
+                  setErrorMessage(null);
+                  setSuccessMessage(null);
+                }}
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors"
+              >
+                লগইনে ফিরে যান
+              </button>
+              <button
+                type="submit"
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-rose-600/20"
+              >
+                পাসওয়ার্ড রিসেট করুন
+              </button>
+            </div>
           </form>
         )}
 

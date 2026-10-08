@@ -157,7 +157,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <div className="w-6 h-6 rounded-full overflow-hidden bg-rose-100 shrink-0">
                 <img
-                  src="https://i.ibb.co.com/vCMSKN3d/user-icon-simple-design-free-vector.jpg"
+                  src={currentUser.avatarUrl || "https://i.ibb.co.com/vCMSKN3d/user-icon-simple-design-free-vector.jpg"}
                   className="w-full h-full object-cover"
                   alt="প্রোফাইল"
                   referrerPolicy="no-referrer"

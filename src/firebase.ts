@@ -11,6 +11,7 @@ import {
 import {
   getFirestore,
   doc,
+  getDoc,
   getDocFromServer,
   collection,
   onSnapshot,
@@ -390,6 +391,44 @@ export async function triggerDistrictPushAlert(spot: {
         console.warn('Native notification trigger:', e);
       }
     }
+  }
+}
+
+// ==========================================
+// User Profile Firestore Sync
+// ==========================================
+
+export async function syncUserProfileToFirestore(user: any) {
+  const currentUid = auth.currentUser?.uid;
+  if (!currentUid) return;
+  const collectionPath = 'users';
+  const userRef = doc(db, collectionPath, currentUid);
+  try {
+    const payload = {
+      uid: currentUid,
+      displayName: (user.name || 'সচেতন নাগরিক').substring(0, 100),
+      email: (user.phoneOrEmail && user.phoneOrEmail.includes('@') ? user.phoneOrEmail : `${user.phoneOrEmail || currentUid}@civic.bd`).substring(0, 150),
+      photoURL: (user.avatarUrl || 'https://i.ibb.co.com/vCMSKN3d/user-icon-simple-design-free-vector.jpg').substring(0, 500),
+      civicKarma: typeof user.karma === 'number' ? user.karma : 150,
+      citizenTier: (user.tier || 'BRONZE').substring(0, 50),
+    };
+    await setDoc(userRef, payload, { merge: true });
+  } catch (error) {
+    console.warn('Firestore user profile sync warning:', error);
+  }
+}
+
+export async function getUserProfileFromFirestore(uid: string) {
+  const collectionPath = 'users';
+  try {
+    const userRef = doc(db, collectionPath, uid);
+    const snap = await getDoc(userRef);
+    if (snap.exists()) {
+      return snap.data();
+    }
+    return null;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, `${collectionPath}/${uid}`);
   }
 }
 

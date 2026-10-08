@@ -37,12 +37,12 @@ import {
 } from './utils/safeApi';
 import {
   ZkpNidModal,
-  ProfileModal,
   EvidenceModal,
   GdModal,
   SosModal,
   FlashAlertModal,
 } from './components/Modals';
+import { ProfileManagementModal } from './components/ProfileManagementModal';
 
 type ActiveTab = 'explore' | 'analytics' | 'threat' | 'radar' | 'database' | 'jury';
 
@@ -661,15 +661,26 @@ export default function App() {
           onSuccess={handleZkpSuccess}
         />
 
-        <ProfileModal
+        <ProfileManagementModal
           isOpen={showProfileModal}
           onClose={() => setShowProfileModal(false)}
           currentUser={currentUser}
           userNidHashed={userNidHashed}
           civicKarma={currentUser ? currentUser.karma : civicKarma}
+          spots={spots}
+          onUpdateUser={(updated) => {
+            setCurrentUser(updated);
+            if (updated.division) {
+              setSelectedDistrict(updated.division);
+            }
+          }}
           onOpenZkp={() => setShowZkpModal(true)}
           onOpenAuth={() => setShowAuthModal(true)}
           onLogout={handleLogout}
+          onNavigateToSpot={(spot) => {
+            setSelectedSpot(spot);
+            setActiveTab('explore');
+          }}
         />
 
         <EvidenceModal

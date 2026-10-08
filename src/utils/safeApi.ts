@@ -153,3 +153,104 @@ export function clientGetUserByToken(token: string): User | null {
   }
   return null;
 }
+
+export function clientUpdateUser(updatedUser: User): void {
+  const users = getClientStoredUsers();
+  const key = updatedUser.phoneOrEmail.trim();
+  if (users[key]) {
+    users[key].user = { ...users[key].user, ...updatedUser };
+  } else {
+    // Look up by id if phone/email was changed
+    for (const k of Object.keys(users)) {
+      if (users[k].user.id === updatedUser.id) {
+        users[k].user = { ...users[k].user, ...updatedUser };
+        break;
+      }
+    }
+  }
+  try {
+    localStorage.setItem('civic_registered_users', JSON.stringify(users));
+  } catch {}
+}
+
+export function clientChangePassword(phoneOrEmail: string, oldPass: string, newPass: string): { ok: boolean; error?: string } {
+  const users = getClientStoredUsers();
+  const entry = users[phoneOrEmail.trim()];
+  if (!entry) {
+    return { ok: false, error: 'ব্যবহারকারী খুঁজে পাওয়া যায়নি।' };
+  }
+  if (entry.password && entry.password !== oldPass) {
+    return { ok: false, error: 'বর্তমান পাসওয়ার্ড সঠিক নয়।' };
+  }
+  entry.password = newPass;
+  try {
+    localStorage.setItem('civic_registered_users', JSON.stringify(users));
+  } catch {}
+  return { ok: true };
+}
+
+export function clientResetPassword(phoneOrEmail: string, newPass: string): { ok: boolean; error?: string } {
+  const users = getClientStoredUsers();
+  const entry = users[phoneOrEmail.trim()];
+  if (!entry) {
+    return { ok: false, error: 'এই মোবাইল বা ইমেইলে কোনো অ্যাকাউন্ট নেই।' };
+  }
+  entry.password = newPass;
+  try {
+    localStorage.setItem('civic_registered_users', JSON.stringify(users));
+  } catch {}
+  return { ok: true };
+}
+
+export function getCitizenTier(karma: number): 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM' {
+  if (karma >= 500) return 'PLATINUM';
+  if (karma >= 300) return 'GOLD';
+  if (karma >= 150) return 'SILVER';
+  return 'BRONZE';
+}
+
+export function getTierBadgeInfo(tier: 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM') {
+  switch (tier) {
+    case 'PLATINUM':
+      return {
+        label: 'প্লাটিনাম অভিভাবক',
+        english: 'Platinum Guardian',
+        color: 'from-cyan-500 to-blue-600',
+        textColor: 'text-cyan-700',
+        bgColor: 'bg-cyan-50 border-cyan-200',
+        nextPoints: 0,
+        icon: '🛡️',
+      };
+    case 'GOLD':
+      return {
+        label: 'গোল্ড পর্যবেক্ষক',
+        english: 'Gold Observer',
+        color: 'from-amber-400 to-amber-600',
+        textColor: 'text-amber-800',
+        bgColor: 'bg-amber-50 border-amber-200',
+        nextPoints: 500,
+        icon: '⚖️',
+      };
+    case 'SILVER':
+      return {
+        label: 'সিলভার জুরি',
+        english: 'Silver Juror',
+        color: 'from-slate-300 to-slate-500',
+        textColor: 'text-slate-800',
+        bgColor: 'bg-slate-100 border-slate-300',
+        nextPoints: 300,
+        icon: '🔍',
+      };
+    default:
+      return {
+        label: 'ব্রোঞ্জ নাগরিক',
+        english: 'Bronze Citizen',
+        color: 'from-rose-400 to-rose-600',
+        textColor: 'text-rose-800',
+        bgColor: 'bg-rose-50 border-rose-200',
+        nextPoints: 150,
+        icon: '🌱',
+      };
+  }
+}
+
