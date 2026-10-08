@@ -537,46 +537,47 @@ export const MapView: React.FC<MapViewProps> = ({
       <div className="flex-1 h-full relative overflow-hidden">
         
         {/* Floating Tools on Top of Map */}
-        <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
+        <div className="absolute top-2.5 sm:top-3 left-2.5 sm:left-3 right-2.5 sm:right-3 z-10 flex items-center justify-between pointer-events-none gap-1.5 sm:gap-2">
           
           {/* Mobile search bar */}
-          <div className="lg:hidden pointer-events-auto flex-1 max-w-sm mr-2">
-            <div className="bg-white/95 backdrop-blur-md rounded-xl p-2 border border-slate-200 shadow-md flex items-center gap-1.5">
+          <div className="lg:hidden pointer-events-auto flex-1 max-w-sm mr-1 sm:mr-2 min-w-0">
+            <div className="bg-white/95 backdrop-blur-md rounded-xl p-1.5 sm:p-2 border border-slate-200 shadow-md flex items-center gap-1.5 min-w-0">
               <Search className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="স্পট খুঁজুন..."
-                className="w-full bg-transparent text-xs text-slate-800 placeholder-slate-400 font-medium focus:outline-none"
+                className="w-full bg-transparent text-xs text-slate-800 placeholder-slate-400 font-medium focus:outline-none min-w-0"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 pointer-events-auto ml-auto">
+          <div className="flex items-center gap-1 sm:gap-1.5 pointer-events-auto ml-auto shrink-0">
             {/* GPS Tracking Button */}
             <button
               onClick={locateUser}
               title="আমার লাইভ অবস্থান দেখুন"
-              className={`h-9 px-3 bg-white/95 backdrop-blur-md rounded-xl border border-slate-200 text-xs font-bold flex items-center gap-1.5 shadow-md hover:bg-slate-50 transition-all ${
+              className={`h-8.5 sm:h-9 px-2 sm:px-3 bg-white/95 backdrop-blur-md rounded-xl border border-slate-200 text-xs font-bold flex items-center gap-1 sm:gap-1.5 shadow-md hover:bg-slate-50 transition-all shrink-0 ${
                 gpsActive ? 'text-blue-600' : 'text-slate-700'
               }`}
             >
-              <Compass className={`w-4 h-4 ${gpsActive ? 'text-blue-600 animate-spin' : 'text-slate-500'}`} />
+              <Compass className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${gpsActive ? 'text-blue-600 animate-spin' : 'text-slate-500'}`} />
               <span className="hidden sm:inline">আমার অবস্থান</span>
             </button>
 
             {/* Safe Bypass Route Toggle */}
             <button
               onClick={() => setShowSafeRoute(!showSafeRoute)}
-              className={`h-9 px-3 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md transition-all ${
+              className={`h-8.5 sm:h-9 px-2 sm:px-3 rounded-xl text-xs font-bold flex items-center gap-1 sm:gap-1.5 shadow-md transition-all shrink-0 ${
                 showSafeRoute
                   ? 'bg-emerald-600 text-white shadow-emerald-600/25 ring-2 ring-emerald-300'
                   : 'bg-white/95 backdrop-blur-md text-slate-700 border border-slate-200 hover:bg-slate-50'
               }`}
             >
-              <Route className="w-4 h-4" />
-              <span>{showSafeRoute ? 'বাইপাস সক্রিয়' : 'নিরাপদ রুট'}</span>
+              <Route className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="hidden sm:inline">{showSafeRoute ? 'বাইপাস সক্রিয়' : 'নিরাপদ রুট'}</span>
+              <span className="sm:hidden">{showSafeRoute ? 'বাইপাস' : 'রুট'}</span>
             </button>
           </div>
 

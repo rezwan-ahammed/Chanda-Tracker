@@ -210,66 +210,66 @@ export const ProfileManagementModal: React.FC<ProfileManagementModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white w-full sm:max-w-xl rounded-t-[36px] sm:rounded-3xl p-6 shadow-2xl border border-white/90 max-h-[92dvh] overflow-y-auto animate-slideUp space-y-4">
+      <div className="bg-white w-full sm:max-w-xl rounded-t-[32px] sm:rounded-3xl p-4 sm:p-6 shadow-2xl border border-white/90 max-h-[92dvh] overflow-y-auto animate-slideUp space-y-4">
         
         {/* Top Header */}
         <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center shadow-md shadow-rose-500/20">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center shadow-md shadow-rose-500/20 shrink-0">
               <ShieldCheck className="w-5 h-5 stroke-[2.4]" />
             </div>
-            <div>
-              <h2 className="text-base font-black text-slate-900">
-                নাগরিক প্রোফাইল ও অ্যাকাউন্ট ব্যবস্থাপনা
+            <div className="min-w-0">
+              <h2 className="text-sm sm:text-base font-black text-slate-900 truncate">
+                নাগরিক প্রোফাইল ও অ্যাকাউন্ট
               </h2>
-              <p className="text-[11px] text-slate-500 font-medium">
+              <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate">
                 জাতীয় নাগরিক সুরক্ষা সেল • ক্রিপ্টোগ্রাফিক ডেটা হাব
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors shrink-0 ml-2"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* User Hero Badge Banner */}
-        <div className="bg-gradient-to-r from-rose-50 via-pink-50/60 to-purple-50/40 p-4 rounded-2xl border border-rose-100 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="bg-gradient-to-r from-rose-50 via-pink-50/60 to-purple-50/40 p-3 sm:p-4 rounded-2xl border border-rose-100 flex items-center justify-between gap-2 sm:gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <div className="relative shrink-0">
               <img
                 src={avatarUrl}
                 alt={name}
-                className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md bg-white"
+                className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-white shadow-md bg-white"
                 referrerPolicy="no-referrer"
               />
-              <span className="absolute -bottom-1 -right-1 text-sm bg-white rounded-full p-0.5 shadow-xs border border-slate-100">
+              <span className="absolute -bottom-1 -right-1 text-xs sm:text-sm bg-white rounded-full p-0.5 shadow-xs border border-slate-100">
                 {tierInfo.icon}
               </span>
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tierInfo.bgColor} ${tierInfo.textColor}`}>
+                <span className={`text-[9.5px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full border ${tierInfo.bgColor} ${tierInfo.textColor}`}>
                   {tierInfo.label}
                 </span>
-                <span className="text-[10px] bg-slate-200/80 text-slate-700 font-bold px-2 py-0.5 rounded-full">
+                <span className="text-[9.5px] sm:text-[10px] bg-slate-200/80 text-slate-700 font-bold px-2 py-0.5 rounded-full">
                   {division} বিভাগ
                 </span>
               </div>
-              <h3 className="text-sm font-black text-slate-900 mt-1 truncate">
+              <h3 className="text-xs sm:text-sm font-black text-slate-900 mt-1 truncate">
                 {currentUser?.name || name}
               </h3>
-              <p className="text-[10.5px] text-slate-500 truncate">
+              <p className="text-[10px] sm:text-[10.5px] text-slate-500 truncate font-num">
                 {currentUser?.phoneOrEmail || '01711000001'}
               </p>
             </div>
           </div>
 
           <div className="text-right shrink-0">
-            <span className="text-[10px] text-slate-500 block font-bold uppercase">নাগরিক কার্মা</span>
-            <span className="text-xl font-black text-rose-600 font-num">
+            <span className="text-[9.5px] sm:text-[10px] text-slate-500 block font-bold uppercase">নাগরিক কার্মা</span>
+            <span className="text-lg sm:text-xl font-black text-rose-600 font-num">
               {karma}
             </span>
             <span className="text-[9px] text-slate-400 block">পয়েন্ট</span>
@@ -281,52 +281,52 @@ export const ProfileManagementModal: React.FC<ProfileManagementModalProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('EDIT_PROFILE')}
-            className={`flex-1 py-2 px-2.5 rounded-lg whitespace-nowrap transition-all flex items-center justify-center gap-1.5 ${
+            className={`shrink-0 py-2 px-2.5 rounded-lg whitespace-nowrap transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'EDIT_PROFILE'
                 ? 'bg-white text-rose-600 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <UserIcon className="w-3.5 h-3.5" />
+            <UserIcon className="w-3.5 h-3.5 shrink-0" />
             <span>প্রোফাইল সম্পাদন</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('KARMA_RANKS')}
-            className={`flex-1 py-2 px-2.5 rounded-lg whitespace-nowrap transition-all flex items-center justify-center gap-1.5 ${
+            className={`shrink-0 py-2 px-2.5 rounded-lg whitespace-nowrap transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'KARMA_RANKS'
                 ? 'bg-white text-rose-600 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Award className="w-3.5 h-3.5" />
+            <Award className="w-3.5 h-3.5 shrink-0" />
             <span>কার্মা ও সম্মাননা</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('MY_ACTIVITY')}
-            className={`flex-1 py-2 px-2.5 rounded-lg whitespace-nowrap transition-all flex items-center justify-center gap-1.5 ${
+            className={`shrink-0 py-2 px-2.5 rounded-lg whitespace-nowrap transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'MY_ACTIVITY'
                 ? 'bg-white text-rose-600 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <FileText className="w-3.5 h-3.5" />
+            <FileText className="w-3.5 h-3.5 shrink-0" />
             <span>আমার রিপোর্ট ({mySpots.length})</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('SECURITY')}
-            className={`flex-1 py-2 px-2.5 rounded-lg whitespace-nowrap transition-all flex items-center justify-center gap-1.5 ${
+            className={`shrink-0 py-2 px-2.5 rounded-lg whitespace-nowrap transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'SECURITY'
                 ? 'bg-white text-rose-600 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Key className="w-3.5 h-3.5" />
+            <Lock className="w-3.5 h-3.5 shrink-0" />
             <span>নিরাপত্তা ও ZKP</span>
           </button>
         </div>

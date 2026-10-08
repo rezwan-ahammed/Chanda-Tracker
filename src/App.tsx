@@ -432,17 +432,17 @@ export default function App() {
 
       {/* Real-time District Emergency Push Alert Banner */}
       {activeDistrictAlert && (
-        <div className="mx-4 mt-2 bg-gradient-to-r from-rose-600 via-rose-500 to-rose-700 text-white rounded-2xl p-3.5 shadow-lg border border-rose-400/50 z-30 flex items-start justify-between gap-3 animate-fadeIn">
-          <div className="flex items-start gap-3">
+        <div className="mx-2.5 sm:mx-4 mt-2 bg-gradient-to-r from-rose-600 via-rose-500 to-rose-700 text-white rounded-2xl p-3 sm:p-3.5 shadow-lg border border-rose-400/50 z-30 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 animate-fadeIn shrink-0">
+          <div className="flex items-start gap-2.5 sm:gap-3 min-w-0">
             <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
               <BellRing className="w-4 h-4 text-white" />
             </div>
-            <div className="text-xs">
-              <span className="font-bold text-sm block">{activeDistrictAlert.title}</span>
-              <p className="text-xs text-rose-100 leading-relaxed mt-0.5">{activeDistrictAlert.message}</p>
+            <div className="text-xs min-w-0">
+              <span className="font-bold text-sm block truncate">{activeDistrictAlert.title}</span>
+              <p className="text-xs text-rose-100 leading-relaxed mt-0.5 line-clamp-2">{activeDistrictAlert.message}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
             {activeDistrictAlert.spot && (
               <button
                 onClick={() => {
@@ -466,7 +466,7 @@ export default function App() {
       )}
 
       {/* Main Viewport Stage */}
-      <main className="flex-1 relative overflow-hidden flex flex-col bg-slate-100/60">
+      <main className="flex-1 relative overflow-hidden flex flex-col bg-slate-100/60 w-full max-w-full">
         {activeTab === 'explore' && (
           <MapView
             spots={spots}
@@ -556,47 +556,47 @@ export default function App() {
         </main>
 
         {/* Mobile Glass Bottom Navigation Bar (< lg screens) */}
-        <footer className="lg:hidden glass-nav px-3 py-2 flex justify-between items-center relative z-40 shrink-0">
+        <footer className="lg:hidden glass-nav px-1 sm:px-3 py-1 sm:py-2 flex justify-around items-center relative z-40 shrink-0 w-full max-w-full overflow-hidden">
           {/* Tab 1: Map */}
           <button
             onClick={() => setActiveTab('explore')}
-            className={`flex flex-col items-center justify-center min-w-[42px] min-h-[44px] transition-all ${
+            className={`flex-1 flex flex-col items-center justify-center min-w-0 py-1 transition-all ${
               activeTab === 'explore' ? 'text-rose-600 font-bold scale-105' : 'text-slate-400 hover:text-slate-600'
             }`}
           >
-            <MapPin className="w-4 h-4" />
-            <span className="text-[9px] mt-0.5">ম্যাপ</span>
+            <MapPin className="w-4 h-4 shrink-0" />
+            <span className="text-[9px] mt-0.5 truncate">ম্যাপ</span>
           </button>
 
           {/* Tab 2: Analytics */}
           <button
             onClick={() => setActiveTab('analytics')}
-            className={`flex flex-col items-center justify-center min-w-[42px] min-h-[44px] transition-all ${
+            className={`flex-1 flex flex-col items-center justify-center min-w-0 py-1 transition-all ${
               activeTab === 'analytics' ? 'text-rose-600 font-bold scale-105' : 'text-slate-400 hover:text-slate-600'
             }`}
           >
-            <TrendingUp className="w-4 h-4" />
-            <span className="text-[9px] mt-0.5">ট্রেন্ড</span>
+            <TrendingUp className="w-4 h-4 shrink-0" />
+            <span className="text-[9px] mt-0.5 truncate">ট্রেন্ড</span>
           </button>
 
           {/* Tab 3: AI Threat Analysis */}
           <button
             onClick={() => setActiveTab('threat')}
-            className={`flex flex-col items-center justify-center min-w-[44px] min-h-[44px] transition-all relative ${
+            className={`flex-1 flex flex-col items-center justify-center min-w-0 py-1 transition-all relative ${
               activeTab === 'threat' ? 'text-rose-600 font-bold scale-105' : 'text-slate-400 hover:text-slate-600'
             }`}
           >
-            <Brain className="w-4 h-4" />
-            <span className="text-[9px] mt-0.5">AI থ্রেট</span>
-            <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-rose-500 rounded-full animate-ping" />
+            <Brain className="w-4 h-4 shrink-0" />
+            <span className="text-[9px] mt-0.5 truncate">AI থ্রেট</span>
+            <span className="absolute top-1 right-2 sm:right-3 w-1.5 h-1.5 bg-rose-500 rounded-full animate-ping" />
           </button>
 
           {/* Central Floating Action Button: Report Submission */}
-          <div className="relative -top-3">
+          <div className="relative -top-2.5 sm:-top-3 shrink-0 px-1">
             <button
               onClick={() => setShowReportModal(true)}
               title="নতুন অভিযোগ দাখিল করুন"
-              className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-500 via-pink-500 to-rose-400 text-white flex items-center justify-center pink-glow shadow-xl active:scale-95 transition-transform"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-rose-500 via-pink-500 to-rose-400 text-white flex items-center justify-center pink-glow shadow-xl active:scale-95 transition-transform"
             >
               <Plus className="w-5 h-5 stroke-[2.8]" />
             </button>
@@ -605,37 +605,37 @@ export default function App() {
           {/* Tab 4: Radar */}
           <button
             onClick={() => setActiveTab('radar')}
-            className={`flex flex-col items-center justify-center min-w-[42px] min-h-[44px] transition-all ${
+            className={`flex-1 flex flex-col items-center justify-center min-w-0 py-1 transition-all ${
               activeTab === 'radar' ? 'text-rose-600 font-bold scale-105' : 'text-slate-400 hover:text-slate-600'
             }`}
           >
-            <Radar className="w-4 h-4" />
-            <span className="text-[9px] mt-0.5">রাডার</span>
+            <Radar className="w-4 h-4 shrink-0" />
+            <span className="text-[9px] mt-0.5 truncate">রাডার</span>
           </button>
 
           {/* Tab 5: Jury */}
           <button
             onClick={() => setActiveTab('jury')}
-            className={`flex flex-col items-center justify-center min-w-[42px] min-h-[44px] transition-all relative ${
+            className={`flex-1 flex flex-col items-center justify-center min-w-0 py-1 transition-all relative ${
               activeTab === 'jury' ? 'text-rose-600 font-bold scale-105' : 'text-slate-400 hover:text-slate-600'
             }`}
           >
-            <Users className="w-4 h-4" />
-            <span className="text-[9px] mt-0.5">জুরি</span>
+            <Users className="w-4 h-4 shrink-0" />
+            <span className="text-[9px] mt-0.5 truncate">জুরি</span>
             {spots.some(s => s.status === 'YELLOW') && (
-              <span className="absolute top-1 right-2 w-1.5 h-1.5 bg-amber-500 rounded-full" />
+              <span className="absolute top-1 right-2 sm:right-3 w-1.5 h-1.5 bg-amber-500 rounded-full" />
             )}
           </button>
 
           {/* Tab 6: Database */}
           <button
             onClick={() => setActiveTab('database')}
-            className={`flex flex-col items-center justify-center min-w-[42px] min-h-[44px] transition-all ${
+            className={`flex-1 flex flex-col items-center justify-center min-w-0 py-1 transition-all ${
               activeTab === 'database' ? 'text-rose-600 font-bold scale-105' : 'text-slate-400 hover:text-slate-600'
             }`}
           >
-            <Database className="w-4 h-4" />
-            <span className="text-[9px] mt-0.5">রেজিস্ট্রি</span>
+            <Database className="w-4 h-4 shrink-0" />
+            <span className="text-[9px] mt-0.5 truncate">রেজিস্ট্রি</span>
           </button>
         </footer>
 
