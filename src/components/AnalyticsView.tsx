@@ -83,17 +83,17 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ spots, onNavigateT
     : 100;
 
   return (
-    <div className="flex-1 p-4 overflow-y-auto space-y-4 max-w-3xl mx-auto w-full">
+    <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-5 max-w-6xl mx-auto w-full">
       {/* Top Title & Mission */}
       <div>
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md uppercase tracking-wider border border-rose-100">
+          <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md uppercase tracking-wider border border-rose-200">
             জাতীয় ক্রাইম অ্যানালিটিক্স
           </span>
-          <span className="text-[10px] text-slate-400">· লাইভ সিন্ডিকেট অডিট</span>
+          <span className="text-[11px] text-slate-400">· লাইভ সিন্ডিকেট অডিট ও ফাইন্যান্সিয়াল ট্রেস</span>
         </div>
-        <h2 className="text-base font-extrabold text-slate-900 mt-1">
-          চাঁদাবাজির ট্রেন্ড ও ফাইন্যান্সিয়াল ট্রেস
+        <h2 className="text-lg font-black text-slate-900 mt-1">
+          চাঁদাবাজির ট্রেন্ড ও অর্থনৈতিক প্রভাব বিশ্লেষণ
         </h2>
       </div>
 
@@ -101,28 +101,28 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ spots, onNavigateT
       {onNavigateToThreat && (
         <div
           onClick={onNavigateToThreat}
-          className="glass-card p-3.5 rounded-2xl border border-rose-200/90 bg-gradient-to-r from-rose-50/70 via-pink-50/50 to-white cursor-pointer hover:shadow-md transition-all active:scale-[0.99] flex items-center justify-between gap-2"
+          className="bg-white p-4 rounded-2xl border border-rose-200/80 shadow-xs hover:border-rose-300 hover:shadow-sm cursor-pointer transition-all active:scale-[0.99] flex items-center justify-between gap-3"
         >
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center pink-glow shrink-0">
-              <span className="text-lg">⚡</span>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0">
+              <TrendingUp className="w-5 h-5 stroke-[2.2]" />
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[9px] font-extrabold bg-rose-500 text-white px-1.5 py-0.2 rounded">নতুন AI ইঞ্জিন</span>
-                <span className="text-[10px] font-bold text-rose-600">রেড জোন রূপান্তর পূর্বাভাস</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[9.5px] font-bold bg-rose-600 text-white px-1.5 py-0.5 rounded">লাইভ ইন্টেলিজেন্স</span>
+                <span className="text-[11px] font-semibold text-rose-600">রেড জোন রূপান্তর পূর্বাভাস</span>
               </div>
-              <h3 className="text-xs font-extrabold text-slate-900 mt-0.5">
-                AI থ্রেট অ্যানালাইসিস ও প্রোঅ্যাকটিভ সুরক্ষা গাইড
+              <h3 className="text-xs font-bold text-slate-900 mt-0.5">
+                AI থ্রেট অ্যানালাইসিস ও প্রোঅ্যাকটিভ নাগরিক সুরক্ষা গাইড
               </h3>
             </div>
           </div>
-          <span className="text-xs text-rose-600 font-bold shrink-0">দেখুন →</span>
+          <span className="text-xs text-rose-600 font-bold shrink-0 hidden sm:inline">বিশ্লেষণ দেখুন →</span>
         </div>
       )}
 
       {/* Control Bar: Division & Risk Filters */}
-      <div className="glass-card p-3 rounded-2xl border border-white/90 space-y-2.5">
+      <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-xs space-y-2.5">
         <div className="flex items-center justify-between text-xs font-bold text-slate-700">
           <span className="flex items-center gap-1">
             <Filter className="w-3.5 h-3.5 text-pink-500" />

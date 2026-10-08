@@ -411,80 +411,81 @@ export default function App() {
   }
 
   return (
-    <div className="w-full h-[100dvh] flex items-center justify-center bg-gradient-to-br from-[#FAFAFA] via-[#FDF2F8]/70 to-[#FFF1F2]/80">
-      {/* App Shell Container with Mobile/Desktop responsiveness */}
-      <div className="w-full h-full sm:h-[860px] sm:max-w-[440px] bg-white sm:rounded-[44px] shadow-2xl overflow-hidden flex flex-col relative sm:border-[8px] sm:border-white/95">
-        
-        {/* Top Header */}
-        <Header
-          onOpenProfile={() => setShowProfileModal(true)}
-          onOpenFlashAlert={() => setShowFlashModal(true)}
-          onOpenDistrictAlert={() => setShowDistrictAlertModal(true)}
-          onOpenSos={() => setShowSosModal(true)}
-          onTogglePanicMode={() => setIsPanicMode(true)}
-          onOpenNid={() => setShowZkpModal(true)}
-          onOpenAuth={() => setShowAuthModal(true)}
-          currentUser={currentUser}
-          userNidHashed={userNidHashed}
-          civicKarma={currentUser ? currentUser.karma : civicKarma}
-          selectedDistrict={selectedDistrict}
-        />
+    <div className="w-full h-[100dvh] flex flex-col bg-slate-50 text-slate-800 antialiased overflow-hidden">
+      {/* Top Header Navigation (Responsive Desktop & Mobile) */}
+      <Header
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        onOpenReportModal={() => setShowReportModal(true)}
+        onOpenProfile={() => setShowProfileModal(true)}
+        onOpenFlashAlert={() => setShowFlashModal(true)}
+        onOpenDistrictAlert={() => setShowDistrictAlertModal(true)}
+        onOpenSos={() => setShowSosModal(true)}
+        onTogglePanicMode={() => setIsPanicMode(true)}
+        onOpenNid={() => setShowZkpModal(true)}
+        onOpenAuth={() => setShowAuthModal(true)}
+        currentUser={currentUser}
+        userNidHashed={userNidHashed}
+        civicKarma={currentUser ? currentUser.karma : civicKarma}
+        selectedDistrict={selectedDistrict}
+      />
 
-        {/* Real-time District Emergency Push Alert Banner */}
-        {activeDistrictAlert && (
-          <div className="mx-3 mt-2 bg-gradient-to-r from-rose-600 via-rose-500 to-pink-600 text-white rounded-2xl p-3 shadow-xl border border-rose-300/60 z-30 flex items-start justify-between gap-2 animate-bounce">
-            <div className="flex items-start gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
-                <BellRing className="w-4 h-4 text-white" />
-              </div>
-              <div className="text-xs">
-                <span className="font-black block">{activeDistrictAlert.title}</span>
-                <p className="text-[11px] text-rose-100 leading-tight mt-0.5">{activeDistrictAlert.message}</p>
-              </div>
+      {/* Real-time District Emergency Push Alert Banner */}
+      {activeDistrictAlert && (
+        <div className="mx-4 mt-2 bg-gradient-to-r from-rose-600 via-rose-500 to-rose-700 text-white rounded-2xl p-3.5 shadow-lg border border-rose-400/50 z-30 flex items-start justify-between gap-3 animate-fadeIn">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
+              <BellRing className="w-4 h-4 text-white" />
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              {activeDistrictAlert.spot && (
-                <button
-                  onClick={() => {
-                    setSelectedSpot(activeDistrictAlert.spot!);
-                    setActiveTab('explore');
-                    setActiveDistrictAlert(null);
-                  }}
-                  className="bg-white text-rose-600 px-2 py-1 rounded-lg font-bold text-[10.5px] shadow-sm hover:bg-rose-50 transition"
-                >
-                  ম্যাপে দেখুন
-                </button>
-              )}
-              <button
-                onClick={() => setActiveDistrictAlert(null)}
-                className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs flex items-center justify-center transition"
-              >
-                ✕
-              </button>
+            <div className="text-xs">
+              <span className="font-bold text-sm block">{activeDistrictAlert.title}</span>
+              <p className="text-xs text-rose-100 leading-relaxed mt-0.5">{activeDistrictAlert.message}</p>
             </div>
           </div>
-        )}
+          <div className="flex items-center gap-2 shrink-0">
+            {activeDistrictAlert.spot && (
+              <button
+                onClick={() => {
+                  setSelectedSpot(activeDistrictAlert.spot!);
+                  setActiveTab('explore');
+                  setActiveDistrictAlert(null);
+                }}
+                className="bg-white text-rose-600 px-3 py-1.5 rounded-xl font-bold text-xs shadow-sm hover:bg-rose-50 transition"
+              >
+                ম্যাপে দেখুন
+              </button>
+            )}
+            <button
+              onClick={() => setActiveDistrictAlert(null)}
+              className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm flex items-center justify-center transition"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
-        {/* Main View Area */}
-        <main className="flex-1 relative overflow-hidden flex flex-col bg-[#FAFAFA]">
-          {activeTab === 'explore' && (
-            <MapView
-              spots={spots}
-              selectedSpot={selectedSpot}
-              onSelectSpot={setSelectedSpot}
-              onVote={handleVote}
-              onOpenEvidence={spot => {
-                setEvidenceSpot(spot);
-                setShowEvidenceModal(true);
-              }}
-              onOpenGdModal={spot => {
-                setGdSpot(spot);
-                setShowGdModal(true);
-              }}
-              onWitnessTestimony={handleWitnessTestimony}
-              onNavigateToThreat={() => setActiveTab('threat')}
-            />
-          )}
+      {/* Main Viewport Stage */}
+      <main className="flex-1 relative overflow-hidden flex flex-col bg-slate-100/60">
+        {activeTab === 'explore' && (
+          <MapView
+            spots={spots}
+            selectedSpot={selectedSpot}
+            onSelectSpot={setSelectedSpot}
+            onVote={handleVote}
+            onOpenEvidence={spot => {
+              setEvidenceSpot(spot);
+              setShowEvidenceModal(true);
+            }}
+            onOpenGdModal={spot => {
+              setGdSpot(spot);
+              setShowGdModal(true);
+            }}
+            onWitnessTestimony={handleWitnessTestimony}
+            onNavigateToThreat={() => setActiveTab('threat')}
+            onOpenReportModal={() => setShowReportModal(true)}
+          />
+        )}
 
           {activeTab === 'analytics' && (
             <AnalyticsView
@@ -554,8 +555,8 @@ export default function App() {
           )}
         </main>
 
-        {/* Glass Bottom Navigation Bar */}
-        <footer className="glass-nav px-2 py-2 flex justify-between items-center relative z-40 shrink-0">
+        {/* Mobile Glass Bottom Navigation Bar (< lg screens) */}
+        <footer className="lg:hidden glass-nav px-3 py-2 flex justify-between items-center relative z-40 shrink-0">
           {/* Tab 1: Map */}
           <button
             onClick={() => setActiveTab('explore')}
@@ -707,7 +708,6 @@ export default function App() {
             }
           }}
         />
-      </div>
     </div>
   );
 }

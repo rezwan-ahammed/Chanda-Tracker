@@ -36,38 +36,43 @@ export const DatabaseView: React.FC<DatabaseViewProps> = () => {
   });
 
   return (
-    <div className="flex-1 p-4 overflow-y-auto space-y-4 max-w-2xl mx-auto w-full">
+    <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-5 max-w-5xl mx-auto w-full">
       {/* Title */}
       <div>
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md uppercase tracking-wider border border-rose-100">
+          <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md uppercase tracking-wider border border-rose-200">
             অনুসন্ধানী ডেটাবেস
           </span>
-          <span className="text-[10px] text-slate-400">· জাতীয় গোয়েন্দা নথি ভিউ</span>
+          <span className="text-[11px] text-slate-400">· জাতীয় গোয়েন্দা নথি ভিউ</span>
         </div>
-        <h2 className="text-base font-extrabold text-slate-900 mt-1">জাতীয় সিন্ডিকেট রেজিস্ট্রি</h2>
-        <p className="text-[11px] text-slate-500">
-          চিহ্নিত চাঁদাবাজ সিন্ডিকেট, গডফাদার ও তৃণমূল ক্যাডারদের পূর্ণাঙ্গ হায়ারার্কি
+        <h2 className="text-lg font-black text-slate-900 mt-1">জাতীয় সিন্ডিকেট রেজিস্ট্রি</h2>
+        <p className="text-xs text-slate-500">
+          চিহ্নিত চাঁদাবাজ সিন্ডিকেট, নির্দেশদাতা ও তৃণমূল পর্যায়ের অপরাধ নেটওয়ার্ক
         </p>
       </div>
 
       {/* Summary KPI Cards */}
-      <div className="grid grid-cols-2 gap-2.5">
-        <div className="glass-card p-3 rounded-2xl border-l-4 border-l-rose-500">
-          <span className="text-[10px] text-slate-500 font-bold uppercase block">নথিভুক্ত সিন্ডিকেট</span>
-          <span className="text-lg font-extrabold text-slate-900 font-num">{syndicates.length} টি চক্র</span>
-          <span className="text-[9px] text-rose-600 block mt-0.5">গোয়েন্দা নজরে</span>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-xs border-l-4 border-l-rose-500">
+          <span className="text-[10.5px] text-slate-500 font-bold uppercase block">নথিভুক্ত সিন্ডিকেট</span>
+          <span className="text-xl font-black text-slate-900 font-num">{syndicates.length} টি চক্র</span>
+          <span className="text-[10px] text-rose-600 block mt-0.5 font-medium">গোয়েন্দা নজরে</span>
         </div>
-        <div className="glass-card p-3 rounded-2xl border-l-4 border-l-emerald-500">
-          <span className="text-[10px] text-slate-500 font-bold uppercase block">মুক্ত এলাকা</span>
-          <span className="text-lg font-extrabold text-emerald-600 font-num">৮৭ টি স্পট</span>
-          <span className="text-[9px] text-emerald-600 block mt-0.5">যৌথ টহল চলমান</span>
+        <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-xs border-l-4 border-l-emerald-500">
+          <span className="text-[10.5px] text-slate-500 font-bold uppercase block">আইনশৃঙ্খলা বাহিনীর অভিযান</span>
+          <span className="text-xl font-black text-emerald-600 font-num">৮৭ টি স্পট</span>
+          <span className="text-[10px] text-emerald-600 block mt-0.5 font-medium">যৌথ টহল চলমান</span>
+        </div>
+        <div className="hidden sm:block bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-xs border-l-4 border-l-blue-500">
+          <span className="text-[10.5px] text-slate-500 font-bold uppercase block">ক্রিপ্টোগ্রাফিক সুরক্ষা</span>
+          <span className="text-xl font-black text-blue-600">১০০% বেনামী</span>
+          <span className="text-[10px] text-blue-600 block mt-0.5 font-medium">নাগরিক জেকেপি হ্যাশড</span>
         </div>
       </div>
 
       {/* Search Input */}
-      <div className="glass-card rounded-2xl p-2 flex items-center gap-2 border border-white/90">
-        <Search className="w-4 h-4 text-pink-500 ml-1.5 shrink-0" />
+      <div className="bg-white rounded-2xl p-2.5 flex items-center gap-2 border border-slate-200 shadow-xs">
+        <Search className="w-4 h-4 text-slate-400 ml-1.5 shrink-0" />
         <input
           type="text"
           value={searchQuery}
@@ -88,12 +93,16 @@ export const DatabaseView: React.FC<DatabaseViewProps> = () => {
       {/* Syndicate List Cards */}
       <div className="space-y-3">
         {filteredSyndicates.length === 0 ? (
-          <div className="glass-card p-8 rounded-3xl text-center space-y-2 border border-slate-100">
-            <Database className="w-10 h-10 text-slate-300 mx-auto" />
-            <h3 className="text-sm font-bold text-slate-800">কোনো সিন্ডিকেট নথিভুক্ত নেই</h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              ফায়ারবেস ডাটাবেসে বর্তমানে কোনো অপরাধ চক্র তালিকাভুক্ত নেই। নাগরিক অভিযোগ ও অনুসন্ধানী অডিটের পর স্বয়ংক্রিয়ভাবে সিন্ডিকেটের হায়ারার্কি তৈরি হবে।
-            </p>
+          <div className="bg-white p-10 rounded-2xl text-center space-y-3 border border-slate-200 shadow-xs">
+            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+              <Database className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-sm font-bold text-slate-800">কোনো সিন্ডিকেট নথিভুক্ত নেই</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                ফায়ারবেস ডাটাবেসে বর্তমানে কোনো অপরাধ চক্র তালিকাভুক্ত নেই। নাগরিক অভিযোগ ও অনুসন্ধানী অডিটের পর স্বয়ংক্রিয়ভাবে সিন্ডিকেটের হায়ারার্কি তৈরি হবে।
+              </p>
+            </div>
           </div>
         ) : (
           filteredSyndicates.map(syn => {
